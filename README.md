@@ -1,6 +1,6 @@
 # 🧠 LLM-Powered C++ Code Quality Assistant
 
-This project leverages [Ollama](https://ollama.com) and Large Language Models (LLMs) to assist developers in C++ code generation and quality assurance. It uses intelligent, modular **state machines** to automate tasks such as unit test creation, static analysis, and fuzzing, aiming to streamline and strengthen your development workflow.
+This project leverages [Ollama](https://ollama.com) and Large Language Models (LLMs) to assist developers in on-premise/on-device C++ code generation and quality assurance for safety critical systems. It uses intelligent, modular **state machines** to automate tasks such as unit test creation, static analysis, and fuzzing, aiming to streamline and strengthen your development workflow.
 
 ## 🚀 Key Features
 
@@ -32,5 +32,15 @@ This project leverages [Ollama](https://ollama.com) and Large Language Models (L
 
 ---
 
-## 📦 Project Structure
+## 📦 Installation Procedure
+- **Microsoft Visual Studios 2022**: Install Microsoft Visual Studios 2022 Community or Professional from Microsoft Website 
+- **Ollama**: Install Ollama 0.6.0 and above 
+- **Ollama Models**: Download models from selection here https://ollama.com/models (Select 3b models for on-device and <30b models for GPU resources of less than 24GB RAM)
+
+---
+
+## 📦 Deployment Guide
+- **Struture**: Solution file contains the python development code to generate C++ code. Open Visual Studios Solution by double clicking on the solution file
+- **Execution**: Runs the solution
+
 
