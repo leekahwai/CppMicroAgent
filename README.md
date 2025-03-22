@@ -27,7 +27,7 @@ This project leverages [Ollama](https://ollama.com) and Large Language Models (L
 - **Large Language Models**: (e.g., LLaMA, Mistral, or custom fine-tuned models)  
 - **C++**: Target language for code generation and analysis  
 - **Python**: Control logic and state machine orchestration  
-- **LLVM/Clang tooling**: For coverage, static analysis, and instrumentation  
+- **MingW**: For C++ compilation  
 - **libFuzzer / AFL++**: Fuzzing support  
 
 ---
