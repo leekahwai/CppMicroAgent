@@ -51,4 +51,6 @@ Recommended C++ gtest: llama3.2 models from Meta
 - **Struture**: Solution file contains the python development code to generate C++ code. Open Visual Studios Solution by double clicking on the solution file
 - **Execution**: Runs the solution. Type the following to run "Write me a C++ header class that does a simple mathematical division operation".
 
+  * Status: The current project is now on compilation steps. 
+
 
