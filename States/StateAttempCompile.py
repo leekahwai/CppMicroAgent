@@ -25,7 +25,7 @@ class StateAttempCompile():
         print("Two Levels Up:", two_levels_up)
 
         # 3. Construct the path to MinGW\bin (i.e., <TwoLevelsUp>\MinGW\bin)
-        mingw_bin_path = os.path.join(two_levels_up, "MinGW", "bin")
+        mingw_bin_path = os.path.join(current_path, "MinGW", "bin")
         print("MinGW Bin Path:", mingw_bin_path)
 
         # 4. Build the g++ command
