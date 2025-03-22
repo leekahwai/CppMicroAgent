@@ -17,7 +17,7 @@ class StateInit():
     def check_mingw_installation(self):
         print ("Verifying installation of MinGW...")
         # Get the directory two levels up from the current file location
-        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
         mingw_path = os.path.join(base_dir, "MinGW")
         mingw_bin_path = os.path.join(mingw_path, "bin")
         

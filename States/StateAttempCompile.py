@@ -33,21 +33,22 @@ class StateAttempCompile():
         gpp_command = [
             os.path.join(mingw_bin_path, "g++"),  # path to the g++ executable in MinGW\bin
             "-v",
-            "-std=c++11",
+            "-std=c++14",
             "-I", os.path.join(current_path, "output"),
             "-L", os.path.join(current_path, "output", "gtest"),
             "-lgtest",
             "-lgtest_main",
             "-pthread",
             os.path.join(current_path, "output", "Test.cpp"),
-            "-o", "test.exe"
+            "-o", os.path.join(current_path, "output", "Test.exe"),
+            ">2", os.path.join(current_path, "output", "verbose.txt")
         ]
 
         # Display the command for debugging purposes
         print("Running command:", " ".join(gpp_command))
 
         try:
-            result = subprocess.run(gpp_command, capture_output=True, text=True)
+            result = subprocess.run(gpp_command, capture_output=True, text=True, cwd=mingw_bin_path)
             if result.returncode != 0:
                 print("Compilation failed with return code:", result.returncode)
                 print("Standard Output:\n", result.stdout)
@@ -60,5 +61,5 @@ class StateAttempCompile():
             print("An error occurred while executing the command:", e)
 
             # Wait for the process to finish and print its return code
-            process.wait()
-        print(f"\nProcess finished with return code: {process.returncode}")
+            subprocess.wait()
+        print(f"\nProcess finished with return code: {result.returncode}")
