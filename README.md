@@ -5,7 +5,7 @@ This project leverages [Ollama](https://ollama.com) and Large Language Models (L
 ## 🚀 Key Features
 
 - **LLM-based C++ Code Generation**  
-  Automatically generate C++ functions and classes based on high-level descriptions or templates using powerful LLMs via Ollama.
+  Automatically generate C++ functions and classes based on high-level descriptions or templates using powerful LLMs via Ollama. State machine is used to iteratively generate and validate codes using prompt engineering to guide and reinforce code generation to hit an objective using coding metrics. (for instance generation of gtest codes to hit 80% coverage)
 
 - **Unit Test Generation with Coverage Awareness**  
   Creates unit tests tailored to hit as many branches and edge cases as possible. Uses feedback loops to iteratively increase test coverage.
