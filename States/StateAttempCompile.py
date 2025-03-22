@@ -38,10 +38,9 @@ class StateAttempCompile():
             "-L", os.path.join(current_path, "output", "gtest"),
             "-lgtest",
             "-lgtest_main",
-            "-pthread",
             os.path.join(current_path, "output", "Test.cpp"),
             "-o", os.path.join(current_path, "output", "Test.exe"),
-            ">2", os.path.join(current_path, "output", "verbose.txt")
+            ">"+ os.path.join(current_path, "output", "verbose.txt")+ " 2>&1"
         ]
 
         # Display the command for debugging purposes
