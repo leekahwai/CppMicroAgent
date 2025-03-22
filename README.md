@@ -54,7 +54,7 @@ This is a guide that we can use.
   * Code Generation State Machine:
     - State 1: Verify state is code generation and specifically for C++
     - State 2: Generate C++ code
-    - State 3: Generate GTest Code
+    - State 3: Generate GTest/GMock Code
     - State 4: Compile codes 
     - State 5: Verify compilation status, if fail, check whether it is generation issue or test generation issue
     - State 6: Revert to corresponding state(2/3) if fail, otherwise go to next state
