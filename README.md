@@ -51,6 +51,20 @@ This is a guide that we can use.
 - **Struture**: Solution file contains the python development code to generate C++ code. Open Visual Studios Solution by double clicking on the solution file
 - **Execution**: Runs the solution. Type the following to run "Write me a C++ header class that does a simple mathematical division operation".
 
+  * Code Generation State Machine:
+    - State 1: Verify state is code generation and specifically for C++
+    - State 2: Generate C++ code
+    - State 3: Generate GTest Code
+    - State 4: Compile codes 
+    - State 5: Verify compilation status, if fail, check whether it is generation issue or test generation issue
+    - State 6: Revert to corresponding state(2/3) if fail, otherwise go to next state
+    - State 7: Run coverage 
+    - State 8: Check coverage status and revert to State 3 to improve coverage
+    - State 9: Complete generation
   * Status: The current project is now on compilation steps. 
 
-
+- **Goals**: Complete the following state machines: 
+    - Code generation
+    - Pure Coverage Test 
+    - Pure Static Analysis (only available if UT in place)
+    - Pure Fuzzing
