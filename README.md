@@ -39,10 +39,10 @@ This project leverages [Ollama](https://ollama.com) and Large Language Models (L
 
 It is recommended to use multi-agents mechanism using multiple small LLM models rather than single large LLM for speed and practicality on local devices.
 This is a guide that we can use. 
-Recommended on device GPU resources: 4GB GPU RAM for 3B models, 24GB GPU ram for 21B models
-Recommended general NLP and verification states: Gemma3 models from Google
-Recommended C++ coding: Qwen2.5-coder models from Alibaba
-Recommended C++ gtest: llama3.2 models from Meta 
+- Recommended on device GPU resources: 4GB GPU RAM for 3B models, 24GB GPU ram for 21B models.
+- Recommended general NLP and verification states: Gemma3 models from Google.
+- Recommended C++ coding: Qwen2.5-coder models from Alibaba.
+- Recommended C++ gtest: llama3.2 models from Meta.
 
 
 ---
