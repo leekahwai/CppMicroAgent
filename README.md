@@ -41,6 +41,6 @@ This project leverages [Ollama](https://ollama.com) and Large Language Models (L
 
 ## 📦 Deployment Guide
 - **Struture**: Solution file contains the python development code to generate C++ code. Open Visual Studios Solution by double clicking on the solution file
-- **Execution**: Runs the solution
+- **Execution**: Runs the solution. Type the following to run "Write me a C++ header class that does a simple mathematical division operation".
 
 
