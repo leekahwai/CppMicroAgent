@@ -7,13 +7,30 @@ from ConfigReader import ConfigReader
 
 class StateInit():
 
+    def __init__(self):
+        self.configReader = ConfigReader()
+
     def run(self, input_data):
         print("[StateInit] Processing input:", input_data)
-        if self.check_mingw_installation():
+        if (self.configReader.get_vc_installdir() != ""):
+            if self.check_vc_installation():
+                return self.check_ollama_installation(), input_data
+            else:
+                return False, input
+        elif (self.check_mingw_installation()):
             return self.check_ollama_installation(), input_data
-        else:
-            return False, input_data
+        return False, input_data
     
+    def check_vc_installation(self):
+        print ("Verifying installation of Visual Studio...")
+        vc_install_dir = self.configReader.get_vc_installdir()
+        if os.path.exists(vc_install_dir):
+            print("[StateInit] Visual Studio installation found.")
+            return True
+        else:
+            print("[StateInit] Visual Studio installation missing!")
+            return False
+
     def check_mingw_installation(self):
         print ("Verifying installation of MinGW...")
         # Get the directory two levels up from the current file location
@@ -64,8 +81,8 @@ class StateInit():
         ollama_data_folder = os.path.expandvars(r"%USERPROFILE%\.ollama")
     
         library_path = os.path.join(ollama_data_folder, "models\\manifests\\registry.ollama.ai\\library")
-        configReader = ConfigReader()
-        model, version = self.split_model_version(configReader.get_model_used())
+        
+        model, version = self.split_model_version(self.configReader.get_model_used())
         model_path = os.path.join(library_path, model)
         specificModelPath = os.path.join(model_path, version)
 
