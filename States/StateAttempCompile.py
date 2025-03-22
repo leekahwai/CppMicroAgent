@@ -30,6 +30,10 @@ class StateAttempCompile():
 
         # 4. Build the g++ command
         # Here, <CurrentPath> is replaced with the absolute current path from step 1.
+        
+        #gpp_command = "g++" + " -v" + " -std=c++14" + " -I ", os.path.join(current_path, "output")+ " -L " + os.path.join(current_path, "output", "gtest") + " -lgtest" + " -lgtest_main " + os.path.join(current_path, "output", "Test.cpp") +  " -o " + os.path.join(current_path, "output", "Test.exe")+ " >"+ os.path.join(current_path, "output", "verbose.txt")+ " 2>&1";
+        
+
         gpp_command = [
             os.path.join(mingw_bin_path, "g++"),  # path to the g++ executable in MinGW\bin
             "-v",
@@ -39,15 +43,23 @@ class StateAttempCompile():
             "-lgtest",
             "-lgtest_main",
             os.path.join(current_path, "output", "Test.cpp"),
-            "-o", os.path.join(current_path, "output", "Test.exe"),
-            ">"+ os.path.join(current_path, "output", "verbose.txt")+ " 2>&1"
+            "-o", os.path.join(current_path, "output", "Test.exe")
         ]
-
+        
         # Display the command for debugging purposes
         print("Running command:", " ".join(gpp_command))
 
         try:
-            result = subprocess.run(gpp_command, capture_output=True, text=True, cwd=mingw_bin_path)
+            verbose_path = os.path.join(current_path, "output", "verbose.txt")
+            with open(verbose_path, "w") as verbose_file:
+                result = subprocess.run(
+                    gpp_command,
+                    cwd=mingw_bin_path,
+                    stdout=verbose_file,
+                    stderr=subprocess.STDOUT  # combines stderr into stdout
+                )
+
+            #result = subprocess.run(gpp_command, capture_output=True, text=True, cwd=mingw_bin_path)
             if result.returncode != 0:
                 print("Compilation failed with return code:", result.returncode)
                 print("Standard Output:\n", result.stdout)
