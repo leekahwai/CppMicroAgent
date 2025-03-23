@@ -33,7 +33,7 @@ This project leverages [Ollama](https://ollama.com) and Large Language Models (L
 ---
 
 ## 📦 Installation Procedure
-- **Microsoft Visual Studios 2022**: Install Microsoft Visual Studios 2022 Community or Professional from Microsoft. During installation, ensure that python development is selected.  
+- **Microsoft Visual Studios 2022**: Install Microsoft Visual Studios 2022 Community or Professional from Microsoft. During installation, ensure that python development and c++ desktop development is selected.  
 - **Ollama**: Install Ollama 0.6.0 and above 
 - **Ollama Models**: Download models from selection here https://ollama.com/models (Select 3b models for on-device and <30b models for GPU resources of less than 24GB RAM)
 
