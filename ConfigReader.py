@@ -19,6 +19,7 @@ class ConfigReader():
             self.gtest_model = settings['gtest_model']
             self.vc_installdir = settings['vc_installdir']
             self.win10dev_installdir = settings['win10dev_installdir']
+            self.win10dev_libdir = settings['win10dev_libdir']
             self.initialized = True
 
 
@@ -34,6 +35,9 @@ class ConfigReader():
     def get_win10dev_installdir(self):
         return self.win10dev_installdir
 
+    def get_win10dev_libdir(self):
+        return self.win10dev_libdir
+
     def read_config(self, file_path='CppMicroAgent.cfg'):
         config = configparser.ConfigParser()
         config.read(file_path)
@@ -45,7 +49,8 @@ class ConfigReader():
             'model_used': config['OLLAMA_SETTINGS'].get('model_used', ''),
             'gtest_model': config['OLLAMA_SETTINGS'].get('gtest_model', ''),
             'vc_installdir': config['OLLAMA_SETTINGS'].get('vc_installdir', ''),
-            'win10dev_installdir': config['OLLAMA_SETTINGS'].get('win10dev_installdir', '')
+            'win10dev_installdir': config['OLLAMA_SETTINGS'].get('win10dev_installdir', ''),
+            'win10dev_libdir': config['OLLAMA_SETTINGS'].get('win10dev_libdir', '')
         }
     
         return settings

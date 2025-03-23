@@ -53,17 +53,49 @@ class StateAttempCompile():
         if self.check_vc_installation():
             path = self.configReader.get_vc_installdir()
             compiler = "cl.exe"
+            '''
             gpp_command = [
-                "cl.exe",
+                f'"{os.path.join(self.configReader.get_vc_installdir(), "bin", "Hostx64", "x64", "cl.exe"))}"', 
                 "/std:c++14",
+                "/MTd",
+                "/D_DEBUG",
+                "/EHsc", 
                 f'/I"{os.path.join(current_path, "output")}"',
-                f'/I"{os.path.join(self.configReader.get_vc_installdir(), "Hostx64", "x64", "bin")}"',
-                f'/I"{os.path.join(self.configReader.get_win10dev_installdir(), "")}"',
+                f'/I"{os.path.join(self.configReader.get_vc_installdir(), "include")}"', 
+                f'/I"{os.path.join(self.configReader.get_win10dev_installdir(), "ucrt")}"',
                 f'{os.path.join(current_path, "output", "Test.cpp")}',
                 f'{os.path.join(current_path, "output", "gtest", "gtest.lib")}',
                 f'{os.path.join(current_path, "output", "gtest", "gtest_main.lib")}',
-                f'/Fe"{os.path.join(current_path, "output", "Test.exe")}"'
+                f'"{os.path.join(self.configReader.get_vc_installdir(), "lib", "x64", "libcmtd.lib"}"',
+                f'"{os.path.join(self.configReader.get_vc_installdir(), "lib", "x64", "libcpmtd.lib")}"',
+                f'"{os.path.join(self.configReader.get_vc_installdir(), "lib", "x64", "oldnames.lib")}"',
+                f'"{os.path.join(self.configReader.get_vc_installdir(), "lib", "x64", "libvcruntimed.lib")}"',
+                f'"{os.path.join(self.configReader.get_win10dev_libdir(), "um", "x64", "kernel32.lib")}"',
+                f'"{os.path.join(self.configReader.get_win10dev_libdir(), "um", "x64", "uuid.lib")}"',
+                f'"{os.path.join(self.configReader.get_win10dev_libdir(), "ucrt", "x64", "libucrtd.lib")}"',
+                f'"{os.path.join(self.configReader.get_win10dev_libdir(), "um", "x64", "kernel32.lib")}"',
+                "/Fe",
+                f'"{os.path.join(current_path, "output", "Test.exe"}"'
             ]
+            '''
+            gpp_command = f'"{self.configReader.get_vc_installdir()+"/bin/Hostx64/x64/cl.exe"}"'
+            gpp_command += " /std:c++14 /MTd /D_DEBUG /EHsc"
+            gpp_command += f' /I"{current_path + "/output"}"'
+            gpp_command += f' /I"{self.configReader.get_vc_installdir()+ "/include"}"'
+            gpp_command += f' /I"{self.configReader.get_win10dev_installdir()+ "/ucrt"}"'
+            gpp_command += f' "{current_path+ "/output"+ "/Test.cpp"}"'
+            gpp_command += f' "{current_path+ "/output"+ "/gtest"+ "/gtest.lib"}"'
+            gpp_command += f' "{current_path+ "/output"+ "/gtest"+ "/gtest_main.lib"}"'
+            gpp_command += f' "{self.configReader.get_vc_installdir()+ "/lib"+ "/x64"+ "/libcmtd.lib"}"'
+            gpp_command += f' "{self.configReader.get_vc_installdir()+ "/lib"+ "/x64"+ "/libcpmtd.lib"}"'
+            gpp_command += f' "{self.configReader.get_vc_installdir()+ "/lib"+ "/x64"+ "/oldnames.lib"}"'
+            gpp_command += f' "{self.configReader.get_vc_installdir()+ "/lib"+ "/x64"+ "/libvcruntimed.lib"}"'
+            gpp_command += f' "{self.configReader.get_win10dev_libdir()+ "/um"+ "/x64"+ "/kernel32.lib"}"'
+            gpp_command += f' "{self.configReader.get_win10dev_libdir()+ "/um"+ "/x64"+ "/uuid.lib"}"'
+            gpp_command += f' "{self.configReader.get_win10dev_libdir()+ "/ucrt"+ "/x64"+ "/libucrtd.lib"}"'
+            gpp_command += f' "{self.configReader.get_win10dev_libdir()+ "/um"+ "/x64"+ "/kernel32.lib"}"'
+            gpp_command += " /Fe"
+            gpp_command += f'"{current_path+ "/output"+ "/Test.exe"}"'
 
         else:
             path = mingw_bin_path
@@ -80,30 +112,9 @@ class StateAttempCompile():
                 os.path.join(current_path, "output", "Test.cpp"),
                 "-o", os.path.join(current_path, "output", "Test.exe")
             ]
-
-            '''
-            Following command needs to be incoporated for it to work. Update accordingly
-            "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\bin\Hostx64\x64\cl.exe" /std:c++14 /MTd /D_DEBUG /EHsc^
-             /I"D:\TFS\Dev\CppMicroAgent\prj\CppMicroAgent\output" ^
-             /I"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\include" ^
-             /I"C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\ucrt" ^
-             "D:\TFS\Dev\CppMicroAgent\prj\CppMicroAgent\output\Test.cpp" ^
-             "D:\TFS\Dev\CppMicroAgent\prj\CppMicroAgent\output\gtest\gtest.lib" ^
-             "D:\TFS\Dev\CppMicroAgent\prj\CppMicroAgent\output\gtest\gtest_main.lib" ^
-             "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\lib\x64\libcmtd.lib" ^
-             "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\lib\x64\libcpmtd.lib" ^
-             "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\lib\x64\oldnames.lib" ^
-             "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\lib\x64\libvcruntimed.lib" ^
-             "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\x64\kernel32.lib" ^
-             "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\x64\uuid.lib" ^
-             "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\ucrt\x64\libucrtd.lib" ^
-             /Fe"D:\TFS\Dev\CppMicroAgent\prj\CppMicroAgent\output\Test.exe"
-
-
-            '''
         
         # Display the command for debugging purposes
-        print("Running command:", " ".join(gpp_command))
+        print("Running command:", "".join(gpp_command))
 
         try:
             verbose_path = os.path.join(current_path, "output", "verbose.txt")
@@ -112,6 +123,7 @@ class StateAttempCompile():
                 with open(verbose_path, "w") as verbose_file:
                     result = subprocess.run(
                         gpp_command,
+                        shell=True,
                         cwd=os.path.join(self.configReader.get_vc_installdir(),""),
                         stdout=verbose_file,
                         stderr=subprocess.STDOUT  # combines stderr into stdout
@@ -130,13 +142,16 @@ class StateAttempCompile():
                 print("Compilation failed with return code:", result.returncode)
                 print("Standard Output:\n", result.stdout)
                 print("Standard Error:\n", result.stderr)
+                return False, input_data
             else:
                 print("Compilation succeeded.")
                 print("Standard Output:\n", result.stdout)
                 print("Standard Error:\n", result.stderr)
+                return True, input_data
         except Exception as e:
             print("An error occurred while executing the command:", e)
 
             # Wait for the process to finish and print its return code
             subprocess.wait()
+            return False, input_data
         print(f"\nProcess finished with return code: {result.returncode}")
