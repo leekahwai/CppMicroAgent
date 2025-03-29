@@ -96,6 +96,8 @@ class StateAttempCompile():
             gpp_command += f' "{self.configReader.get_win10dev_libdir()+ "/um"+ "/x64"+ "/kernel32.lib"}"'
             gpp_command += " /Fe"
             gpp_command += f'"{current_path+ "/output"+ "/Test.exe"}"'
+            gpp_command += " >"
+            gpp_command += f'"{current_path+ "/output"+ "/compiledGTestResult.txt"}"'
 
         else:
             path = mingw_bin_path
@@ -110,7 +112,8 @@ class StateAttempCompile():
                 "-lgtest",
                 "-lgtest_main",
                 os.path.join(current_path, "output", "Test.cpp"),
-                "-o", os.path.join(current_path, "output", "Test.exe")
+                "-o", os.path.join(current_path, "output", "Test.exe"),
+                ">", os.path.join(current_path, "output", "compiledGTestResult.txt")
             ]
         
         # Display the command for debugging purposes
@@ -139,9 +142,15 @@ class StateAttempCompile():
 
             #result = subprocess.run(gpp_command, capture_output=True, text=True, cwd=mingw_bin_path)
             if result.returncode != 0:
-                print("Compilation failed with return code:", result.returncode)
-                print("Standard Output:\n", result.stdout)
-                print("Standard Error:\n", result.stderr)
+                print("GTest Compilation failed:", result.returncode)
+                # Read GTest compilation
+                # Open file
+                pathToGTestResults = current_path + "\\output"+ "\\compiledGTestResult.txt"
+                with open(pathToGTestResults, 'r') as file:
+                    contents = file.read()
+                    # To store contents of gtest compilation into input_data
+                    input_data.set_gtestCompiledResult(contents)
+
                 return False, input_data
             else:
                 print("Compilation succeeded.")

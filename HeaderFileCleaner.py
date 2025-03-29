@@ -39,4 +39,28 @@ class HeaderFileCleaner:
                 except Exception as e:
                     print(f"Error deleting {file}: {e}")
 
+            obj_files = glob.glob(os.path.join(folder, "*.obj"))  # Find all .obj files
+            for file in obj_files:
+                try:
+                    os.remove(file)
+                    print(f"Deleted: {file}")
+                except Exception as e:
+                    print(f"Error deleting {file}: {e}")
+
+            exe_files = glob.glob(os.path.join(folder, "*.exe"))  # Find all .exe files
+            for file in exe_files:
+                try:
+                    os.remove(file)
+                    print(f"Deleted: {file}")
+                except Exception as e:
+                    print(f"Error deleting {file}: {e}")
+
+            txt_files = glob.glob(os.path.join(folder, "*.txt"))  # Find all .exe files
+            for file in txt_files:
+                try:
+                    os.remove(file)
+                    print(f"Deleted: {file}")
+                except Exception as e:
+                    print(f"Error deleting {file}: {e}")
+
 

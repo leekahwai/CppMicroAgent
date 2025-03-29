@@ -30,6 +30,7 @@
     <Compile Include="States\StateGenerateCodeFromInput.py" />
     <Compile Include="States\StateGenerateGTestCodeFromInput.py" />
     <Compile Include="States\StateAttempCompile.py" />
+    <Compile Include="States\StateVerifyFailedCompiledGTest.py" />
     <Compile Include="States\StateVerifyGenerateCodeQuery.py" />
     <Compile Include="States\StateEnd.py" />
     <Compile Include="States\StateInit.py" />

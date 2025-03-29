@@ -27,7 +27,7 @@ class StateGenerateGTestCodeFromInput():
         query = "Generate the corresponding C++ googletest unit test with appropriate assertions for the following code in a single header file. Add doxygen comments.  Code: \n\n" + input_data.get_generated_code();
         # Using GTest Model
         print(query)
-        time.sleep(5)
+        time.sleep(1)
         response_str = client.query(configReader.get_gtest_model(), query)
         
         response_text = ""

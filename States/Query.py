@@ -1,4 +1,5 @@
 from tkinter import SE
+from xmlrpc.client import Boolean
 
 
 class Query:
@@ -15,6 +16,9 @@ class Query:
         self.generated_ut = ""
         self.generated_code_file = ""
         self.generated_ut_file = ""
+        self.gtestCompiledResult = ""
+        self.gtestSecondAttempt = False
+        self.generatedCodeSecondAttempt = False
 
     def get_input_data(self):
         return self.input_data
@@ -42,4 +46,25 @@ class Query:
 
     def get_generated_ut_file(self):    
         return self.generated_ut_file
+
+    def set_gtestCompiledResult(self, data: str):
+        self.gtestCompiledResult = data
+
+    def get_gtestCompiledResult(self):
+        return self.gtestCompiledResult
+
+    def set_gtestSecondAttempt(self, data: Boolean) :
+        self.gtestSecondAttempt = data
+
+    def get_gtestSecondAttempt(self) :
+        return self.gtestSecondAttempt
+
+    def set_generatedCodeSecondAttempt(self, data: Boolean):
+        self.generatedCodeSecondAttempt = data
+
+    def get_generatedCodeSecondAttempt(self) :
+        return self.generatedCodeSecondAttempt
+
+
+
 

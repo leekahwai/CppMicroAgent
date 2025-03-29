@@ -4,6 +4,7 @@ from States.StateGenerateCodeFromInput import StateGenerateCodeFromInput
 from States.StateGenerateGTestCodeFromInput import StateGenerateGTestCodeFromInput
 from States.StateEnd import StateEnd
 from States.StateAttempCompile import StateAttempCompile
+from States.StateVerifyFailedCompiledGTest import StateVerifyFailedCompiledGTest
 import ConfigReader
 
 class StateMachine:
@@ -14,6 +15,7 @@ class StateMachine:
             "StateGenerateCodeFromInput": StateGenerateCodeFromInput(),
             "StateGenerateGTestCodeFromInput":StateGenerateGTestCodeFromInput(),
             "StateAttempCompile":StateAttempCompile(),
+            "StateVerifyFailedCompiledGTest": StateVerifyFailedCompiledGTest(),
             "end": StateEnd()
         }
         self.current_state = "init"
@@ -34,6 +36,8 @@ class StateMachine:
             elif self.current_state == "StateGenerateGTestCodeFromInput":
                 self.current_state = "StateAttempCompile" if proceed else "end"
             elif self.current_state == "StateAttempCompile" :
+                self.current_state = "end" if proceed else "StateVerifyFailedCompiledGTest"
+            elif self.current_state == "StateVerifyFailedCompiledGTest" :
                 self.current_state = "end" if proceed else "end"
             elif self.current_state == "end":
                 break
