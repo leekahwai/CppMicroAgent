@@ -48,7 +48,7 @@ This is a guide that we can use.
 ---
 
 ## 📦 Deployment Guide
-- **Struture**: Solution file contains the python development code to generate C++ code. Open Visual Studios Solution by double clicking on the solution file
+- **Struture**: Solution file contains the python development code to generate C++ code. Open Visual Studios Solution in **ADMINISTRATIVE MODE (REQUIRED FOR COMPILATION)** and open the solution file. 
 - **Execution**: Runs the solution. Type the following to run "Write me a C++ header class that does a simple mathematical division operation".
 
   * Code Generation State Machine:
