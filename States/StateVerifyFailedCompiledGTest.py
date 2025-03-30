@@ -8,6 +8,8 @@ from CodeWriter import CodeWriter
 import json
 import time
 
+from States.Query import Query
+
 class StateVerifyFailedCompiledGTest():
     def __init__(self):
         print("Initializing [StateVerifyFailedCompiledGTest]")
@@ -20,7 +22,7 @@ class StateVerifyFailedCompiledGTest():
 
         # Check Compiled GTest Results
         processed_lines = input_data.get_gtestCompiledResult()
-        query = "Does the following string contain error(s) pertaining to Test.cpp only? Answer with a Yes or No: \n\n" + processed_lines;
+        query = "Does the following files contain error(s) pertaining to Test.cpp only? Answer with a simple Yes or No: \n\n" + processed_lines + " GTest Test.cpp: \n" + input_data.get_generated_ut() + " Original Generated Code: " + input_data.get_generated_code();
         # Using GTest Model
         print(query)
         time.sleep(1)
@@ -39,6 +41,7 @@ class StateVerifyFailedCompiledGTest():
         if (response_text == "Yes") or (response_text == "Yes."):
             print ("[StateVerifyFailedCompiledGTest] Error comes from GTest only. Modify input data")
             input_data.set_gtestSecondAttempt(True)
+            input_data.set_gtestErrors(processed_lines)
 
             #TODO   To go back to StateGenerateGTestCodeFromInput.py and restart the attempt 
             #       Also use a different query based on gtestSecondAttempt
@@ -48,3 +51,4 @@ class StateVerifyFailedCompiledGTest():
         else:   
             print ("[StateGenerateGTestCodeFromInput] Error comes from the code generation. Return with now information of the generated code.")
             return False, input_data
+        

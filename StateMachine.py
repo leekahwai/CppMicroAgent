@@ -38,6 +38,6 @@ class StateMachine:
             elif self.current_state == "StateAttempCompile" :
                 self.current_state = "end" if proceed else "StateVerifyFailedCompiledGTest"
             elif self.current_state == "StateVerifyFailedCompiledGTest" :
-                self.current_state = "end" if proceed else "end"
+                self.current_state = "StateGenerateCodeFromInput" if proceed else "StateGenerateGTestCodeFromInput"
             elif self.current_state == "end":
                 break

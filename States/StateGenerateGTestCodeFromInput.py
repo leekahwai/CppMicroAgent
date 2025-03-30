@@ -24,7 +24,11 @@ class StateGenerateGTestCodeFromInput():
         # Remove first and last line
         processed_lines = input_data.get_generated_code()[1:-1]
         input_data.set_generated_code("".join(processed_lines))
-        query = "Generate the corresponding C++ googletest unit test with appropriate assertions for the following code in a single header file. Add doxygen comments.  Code: \n\n" + input_data.get_generated_code();
+
+        if input_data.get_gtestSecondAttempt() == True:
+            query = "The following Gtest is wrong. Rewrite only the GTest Code and nothing else. \n Current GTest Code: \n" + input_data.get_generated_ut() + "\n Error is: \n" + input_data.get_gtestErrors() + "\n Original Test Target is: \n" + input_data.get_generated_code();
+        else:
+            query = "Generate the corresponding C++ googletest unit test with appropriate assertions for the following code in a single header file. Add doxygen comments.  Code: \n\n" + input_data.get_generated_code();
         # Using GTest Model
         print(query)
         time.sleep(1)

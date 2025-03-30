@@ -19,6 +19,8 @@ class Query:
         self.gtestCompiledResult = ""
         self.gtestSecondAttempt = False
         self.generatedCodeSecondAttempt = False
+        self.gtestErrors = ""
+        self.codeErrors = ""
 
     def get_input_data(self):
         return self.input_data
@@ -64,6 +66,19 @@ class Query:
 
     def get_generatedCodeSecondAttempt(self) :
         return self.generatedCodeSecondAttempt
+
+    def set_gtestErrors (self, data:str):
+        self.gtestErrors = data
+
+    def get_gtestErrors (self):
+        return self.gtestErrors
+
+    def set_codeErrors (self, data:str):
+        self.codeErrors = data
+
+    def get_codeErrors (self):
+        return self.codeErrors
+
 
 
 
