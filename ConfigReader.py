@@ -16,6 +16,7 @@ class ConfigReader():
         if not hasattr(self, 'initialized'):
             settings = self.read_config()
             self.modelused = settings['model_used']
+            self.codegen_model = settings['codegen_model']
             self.gtest_model = settings['gtest_model']
             self.vc_installdir = settings['vc_installdir']
             self.win10dev_installdir = settings['win10dev_installdir']
@@ -25,6 +26,9 @@ class ConfigReader():
 
     def get_model_used(self):
         return self.modelused
+
+    def get_codegen_model(self):
+        return self.codegen_model
 
     def get_gtest_model(self):
         return self.gtest_model
@@ -47,6 +51,7 @@ class ConfigReader():
     
         settings = {
             'model_used': config['OLLAMA_SETTINGS'].get('model_used', ''),
+            'codegen_model': config['OLLAMA_SETTINGS'].get('codegen_model', ''),
             'gtest_model': config['OLLAMA_SETTINGS'].get('gtest_model', ''),
             'vc_installdir': config['OLLAMA_SETTINGS'].get('vc_installdir', ''),
             'win10dev_installdir': config['OLLAMA_SETTINGS'].get('win10dev_installdir', ''),

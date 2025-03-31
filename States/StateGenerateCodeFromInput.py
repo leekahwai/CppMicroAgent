@@ -28,11 +28,14 @@ class StateGenerateCodeFromInput():
 
 
         print ("[StateGenerateCodeFromInput] Generating codes... Please Wait....")
-        query = "Proceed to generate the following c++ coding request in a class header file without explanation. Add doxygen comments.  Coding Request: " + input_data.get_input_data();
+        if input_data.get_generatedCodeSecondAttempt() == True:
+            query = "Generate the following c++ coding request in a class header file without explanation. Ensure this is compilable. Add doxygen comments.  Coding Request: " + input_data.get_input_data();
+        else:
+            query = "Proceed to generate the following c++ coding request in a class header file without explanation. Ensure all operations are implemented. Add doxygen comments.  Coding Request: " + input_data.get_input_data();
         client = OllamaClient()
         configReader = ConfigReader()
-        modelused = configReader.get_model_used()
-        response_str = client.query(configReader.get_model_used(), query)
+        modelused = configReader.get_codegen_model()
+        response_str = client.query(configReader.get_codegen_model(), query)
         # Split multiple JSON objects and process them separately
         responses = response_str.strip().split("\n")
 
@@ -45,7 +48,8 @@ class StateGenerateCodeFromInput():
                 response_text += (response_json["response"])
                 
         codeWriter = CodeWriter(input_data, response_text, "output")
-        codeWriter.process_code()
+        filename = codeWriter.process_code()
+        input_data.set_generated_code_file(filename)
         if (response_text != ""):
             input_data.set_generated_code(response_text) 
             return True, input_data

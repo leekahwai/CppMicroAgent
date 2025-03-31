@@ -26,7 +26,7 @@ class StateVerifyFailedCompiledGTest():
         # Using GTest Model
         print(query)
         time.sleep(1)
-        response_str = client.query(configReader.get_gtest_model(), query)
+        response_str = client.query(configReader.get_model_used(), query)
         
         response_text = ""
         responses = response_str.strip().split("\n")
@@ -38,7 +38,8 @@ class StateVerifyFailedCompiledGTest():
                 # Extract response
                 response_text += (response_json["response"])
 
-        if (response_text == "Yes") or (response_text == "Yes."):
+        response_str = response_str[:3]
+        if (response_text == "Yes"):
             print ("[StateVerifyFailedCompiledGTest] Error comes from GTest only. Modify input data")
             input_data.set_gtestSecondAttempt(True)
             input_data.set_gtestErrors(processed_lines)
@@ -50,5 +51,7 @@ class StateVerifyFailedCompiledGTest():
             return True, input_data
         else:   
             print ("[StateGenerateGTestCodeFromInput] Error comes from the code generation. Return with now information of the generated code.")
+            input_data.set_generatedCodeSecondAttempt(True)
+            
             return False, input_data
         

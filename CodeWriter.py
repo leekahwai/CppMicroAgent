@@ -73,3 +73,4 @@ class CodeWriter:
             file.write("\n".join(processed_lines) + "\n")
 
         print(f"Processed file saved as {output_file}")
+        return curr_filename
