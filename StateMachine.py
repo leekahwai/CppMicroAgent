@@ -5,6 +5,7 @@ from States.StateGenerateGTestCodeFromInput import StateGenerateGTestCodeFromInp
 from States.StateEnd import StateEnd
 from States.StateAttempCompile import StateAttempCompile
 from States.StateVerifyFailedCompiledGTest import StateVerifyFailedCompiledGTest
+from States.StateVerifyCompilableCompiledGTest import StateVerifyCompilableCompiledGTest
 import ConfigReader
 
 class StateMachine:
@@ -16,6 +17,7 @@ class StateMachine:
             "StateGenerateGTestCodeFromInput":StateGenerateGTestCodeFromInput(),
             "StateAttempCompile":StateAttempCompile(),
             "StateVerifyFailedCompiledGTest": StateVerifyFailedCompiledGTest(),
+            "StateVerifyCompilableCompiledGTest": StateVerifyCompilableCompiledGTest(),
             "end": StateEnd()
         }
         self.current_state = "init"
@@ -23,7 +25,7 @@ class StateMachine:
         ConfigReader.ConfigReader()
     
     def run(self):
-        while self.current_state:
+        while self.current_state != "end":
             proceed, input_data = self.states[self.current_state].run(self.input_data)
             self.input_data = input_data
             
@@ -36,8 +38,10 @@ class StateMachine:
             elif self.current_state == "StateGenerateGTestCodeFromInput":
                 self.current_state = "StateAttempCompile" if proceed else "end"
             elif self.current_state == "StateAttempCompile" :
-                self.current_state = "end" if proceed else "StateVerifyFailedCompiledGTest"
+                self.current_state = "StateVerifyCompilableCompiledGTest" if proceed else "StateVerifyFailedCompiledGTest"
             elif self.current_state == "StateVerifyFailedCompiledGTest" :
                 self.current_state = "StateGenerateGTestCodeFromInput" if proceed else "StateGenerateCodeFromInput"
+            elif self.current_state == "StateVerifyCompilableCompiledGTest" : 
+                self.current_state = "end" if proceed else "StateGenerateGTestCodeFromInput"
             elif self.current_state == "end":
                 break
