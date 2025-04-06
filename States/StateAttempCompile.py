@@ -79,7 +79,8 @@ class StateAttempCompile():
             ]
             '''
             gpp_command = f'"{self.configReader.get_vc_installdir()+"/bin/Hostx64/x64/cl.exe"}"'
-            gpp_command += " /std:c++14 /MTd /D_DEBUG /EHsc"
+            gpp_command += " /std:c++14 /MTd /D_DEBUG /EHsc /Zi"
+            gpp_command += f' /fd"{current_path + "/output/Test.pdb"}"'
             gpp_command += f' /I"{current_path + "/output"}"'
             gpp_command += f' /I"{self.configReader.get_vc_installdir()+ "/include"}"'
             gpp_command += f' /I"{self.configReader.get_win10dev_installdir()+ "/ucrt"}"'
