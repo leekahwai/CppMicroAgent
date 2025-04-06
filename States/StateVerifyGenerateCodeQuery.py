@@ -17,7 +17,7 @@ class StateVerifyGenerateCodeQuery():
         # Split multiple JSON objects and process them separately
         responses = response_str.strip().split("\n")
 
-        response_text = "No"
+        response_text = "No" 
         for resp in responses:
             response_json = json.loads(resp)
             if not response_json["done"]:  # Only process responses where "done" is false
