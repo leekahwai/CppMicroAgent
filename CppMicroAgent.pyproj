@@ -21,21 +21,25 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="flaskApp.py" />
     <Compile Include="CodeWriter.py" />
     <Compile Include="ConfigReader.py" />
     <Compile Include="CppMicroAgent.py" />
+    <Compile Include="flow_manager.py" />
     <Compile Include="HeaderFileCleaner.py" />
     <Compile Include="OllamaClient.py" />
     <Compile Include="States\Query.py" />
+    <Compile Include="States\StateFilterGTestCode.py" />
     <Compile Include="States\StateGenerateCodeFromInput.py" />
     <Compile Include="States\StateGenerateGTestCodeFromInput.py" />
     <Compile Include="States\StateAttempCompile.py" />
+    <Compile Include="States\StateRunOpenCppCoverage.py" />
     <Compile Include="States\StateVerifyCompilableCompiledGTest.py" />
     <Compile Include="States\StateVerifyFailedCompiledGTest.py" />
     <Compile Include="States\StateVerifyGenerateCodeQuery.py" />
     <Compile Include="States\StateEnd.py" />
     <Compile Include="States\StateInit.py" />
-    <Compile Include="StateMachine.py" />
+    <Compile Include="States\StateMachine.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="States\" />

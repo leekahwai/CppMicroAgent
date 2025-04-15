@@ -16,6 +16,7 @@ class Query:
         self.generated_ut = ""
         self.generated_code_file = ""
         self.generated_ut_file = ""
+        self.generated_ut_comments = ""
         self.gtestCompiledResult = ""
         self.gtestSecondAttempt = False
         self.generatedCodeSecondAttempt = False
@@ -24,6 +25,12 @@ class Query:
 
     def get_input_data(self):
         return self.input_data
+
+    def set_generated_ut_comments(self, data: str):
+        self.generated_ut_comments = data
+
+    def get_generated_ut_comments(self):    
+        return self.generated_ut_comments
 
     def set_generated_code(self, data: str):
         self.generated_code = data

@@ -7,6 +7,7 @@ import json
 import time
 import os
 import subprocess
+from flow_manager import flow
 
 class StateAttempCompile():
     def __init__(self):
@@ -25,7 +26,7 @@ class StateAttempCompile():
 
     def run(self, input_data):
         print ("[StateAttempCompile] Attempting compilation....")
-        
+        flow.transition("StateAttempCompile")
 
         # 1. Get the absolute current path
         current_path = os.path.abspath(os.getcwd())

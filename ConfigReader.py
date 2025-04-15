@@ -21,8 +21,11 @@ class ConfigReader():
             self.vc_installdir = settings['vc_installdir']
             self.win10dev_installdir = settings['win10dev_installdir']
             self.win10dev_libdir = settings['win10dev_libdir']
+            self.opencpp_dir = settings['opencpp_dir']
             self.initialized = True
 
+    def getOpenCppDir(self):
+        return self.opencpp_dir
 
     def get_model_used(self):
         return self.modelused
@@ -55,7 +58,8 @@ class ConfigReader():
             'gtest_model': config['OLLAMA_SETTINGS'].get('gtest_model', ''),
             'vc_installdir': config['OLLAMA_SETTINGS'].get('vc_installdir', ''),
             'win10dev_installdir': config['OLLAMA_SETTINGS'].get('win10dev_installdir', ''),
-            'win10dev_libdir': config['OLLAMA_SETTINGS'].get('win10dev_libdir', '')
+            'win10dev_libdir': config['OLLAMA_SETTINGS'].get('win10dev_libdir', ''),
+            'opencpp_dir': config['OLLAMA_SETTINGS'].get('opencpp_dir', '')
         }
     
         return settings

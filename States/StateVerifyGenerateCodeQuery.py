@@ -2,12 +2,14 @@ from http import client
 from OllamaClient import OllamaClient
 from ConfigReader import ConfigReader
 import json
+from flow_manager import flow
 
 class StateVerifyGenerateCodeQuery():
     def __init__(self):
         print("Initializing [StateVerifyGenerateCodeQuery]")
 
     def run(self, input_data):
+        flow.transition("StateVerifyGenerateCodeQuery")
         print ("[StateVerifyGenerateCodeQuery] Processing input... Verify whether request is a C++ code generation")
         query = "Can you verify whether the following text is asking you very specifically to generate a C++ code? Only reply with a Yes or No. Following Text: " + input_data.get_input_data();
         client = OllamaClient()

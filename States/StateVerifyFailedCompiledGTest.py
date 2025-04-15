@@ -7,6 +7,7 @@ from ConfigReader import ConfigReader
 from CodeWriter import CodeWriter
 import json
 import time
+from flow_manager import flow
 
 from States.Query import Query
 
@@ -15,6 +16,7 @@ class StateVerifyFailedCompiledGTest():
         print("Initializing [StateVerifyFailedCompiledGTest]")
 
     def run(self, input_data):
+        flow.transition("StateVerifyFailedCompiledGTest")
         print ("[StateVerifyFailedCompiledGTest] Verifying GTest Compilation Error Reason... Please Wait....")
         client = OllamaClient()
         configReader = ConfigReader()

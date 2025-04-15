@@ -1,0 +1,25 @@
+<!-- templates/index.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Runtime Flowchart</title>
+    <script src="https://cdn.jsdelivr.net/npm/@viz-js/viz@3.3.0/lib/viz-standalone.js"></script>
+
+</head>
+<body>
+    <h1>Runtime Flowchart</h1>
+    <div id="graph"></div>
+    <script>
+        async function fetchGraph() {
+            const response = await fetch('/graph');
+            const dot = await response.text();
+            const viz = new Viz();
+            const svg = await viz.renderString(dot);
+            document.getElementById('graph').innerHTML = svg;
+        }
+        setInterval(fetchGraph, 3000);
+        fetchGraph();
+    </script>
+</body>
+</html>

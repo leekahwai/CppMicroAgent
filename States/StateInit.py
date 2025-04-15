@@ -1,7 +1,7 @@
 import os
 
 from ConfigReader import ConfigReader
-
+from flow_manager import flow
 
 
 
@@ -11,6 +11,7 @@ class StateInit():
         self.configReader = ConfigReader()
 
     def run(self, input_data):
+        flow.transition("StateInit")
         print("[StateInit] Processing input:", input_data)
         if (self.configReader.get_vc_installdir() != ""):
             if self.check_vc_installation():

@@ -8,19 +8,21 @@ from CodeWriter import CodeWriter
 from HeaderFileCleaner import HeaderFileCleaner
 import json
 from States.Query import Query
+from flow_manager import flow
 
 class StateGenerateCodeFromInput():
     def __init__(self):
         print("Initializing [StateA]")
 
     def run(self, input_data):
-
+        flow.transition("StateGenerateCodeFromInput")
         print ("\n[StateGenerateCodeFromInput] Removing previous generated codes... ")
         
 
         folders_to_clean = [
             "output",
             "output/test",
+            "CoverageReport*"
         ]
 
         cleaner = HeaderFileCleaner(folders_to_clean)
@@ -29,9 +31,9 @@ class StateGenerateCodeFromInput():
 
         print ("[StateGenerateCodeFromInput] Generating codes... Please Wait....")
         if input_data.get_generatedCodeSecondAttempt() == True:
-            query = "Generate the following c++ coding request in a class header file without explanation. Ensure this is compilable. Add doxygen comments.  Coding Request: " + input_data.get_input_data();
+            query = "Generate the following c++ coding request in a class header file without explanation. Use template if required.  Ensure this is compilable. Use pragma once as header guard. Add doxygen comments.  Coding Request: " + input_data.get_input_data();
         else:
-            query = "Proceed to generate the following c++ coding request in a class header file without explanation. Ensure all operations are implemented. Add doxygen comments.  Coding Request: " + input_data.get_input_data();
+            query = "Proceed to generate the following c++ coding request in a class header file without explanation. Use template if required. Ensure all operations are implemented. Use pragma once as header guard. Add doxygen comments.  Coding Request: " + input_data.get_input_data();
         client = OllamaClient()
         configReader = ConfigReader()
         modelused = configReader.get_codegen_model()

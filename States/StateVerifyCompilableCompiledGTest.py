@@ -9,6 +9,7 @@ import json
 import time
 import os
 import subprocess
+from flow_manager import flow
 
 from States.Query import Query
 
@@ -18,6 +19,7 @@ class StateVerifyCompilableCompiledGTest():
         print("Initializing [StateVerifyCompilableCompiledGTest]")
 
     def run(self, input_data):
+        flow.transition("StateVerifyCompilableCompiledGTest")
         print ("[StateVerifyCompilableCompiledGTest] Verifying GTest Results... Please Wait....")
         client = OllamaClient()
         configReader = ConfigReader()
