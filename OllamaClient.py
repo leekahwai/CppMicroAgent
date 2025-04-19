@@ -1,36 +1,33 @@
 import requests
 
 class OllamaClient:
-    def __init__(self, host='localhost', port=11434):
+    def __init__(self, host='localhost', port=11434, timeout=(5, 60)):
         """
-        Initializes the Ollama client to communicate with a locally running Ollama server.
-        :param host: The hostname where Ollama is running (default: 'localhost').
-        :param port: The port on which Ollama is listening (default: 11434).
+        :param host: Ollama host (default 'localhost')
+        :param port: Ollama HTTP port (default 11434)
+        :param timeout: (connect_timeout, read_timeout) in seconds
         """
         self.base_url = f'http://{host}:{port}/api/generate'
-    
-        import requests
-
-
-
+        # Persist connections across queries for efficiency and to avoid stalls
+        self.session = requests.Session()  
+        # A tuple (connect_timeout, read_timeout)
+        self.timeout = timeout  
 
     def query(self, model: str, prompt: str):
-        """
-        Sends a request to the Ollama server and returns the response.
-        :param model: The name of the model to use (e.g., 'llama2', 'mistral', etc.).
-        :param prompt: The text prompt to send to the model.
-        :return: The generated response from the model.
-        """
-        payload = {
-            "model": model,
-            "prompt": prompt
-        }
-        
+        payload = {"model": model, "prompt": prompt}
         try:
-            response = requests.post(self.base_url, json=payload)
-            return response.text
+            # specifying timeout prevents the request from hanging forever
+            resp = self.session.post(
+                self.base_url,
+                json=payload,
+                timeout=self.timeout
+            )
+            resp.raise_for_status()
+            return resp.text
+
+        except requests.exceptions.Timeout:
+            # handle connect or read timeout
+            return "Error: request to Ollama server timed out"
         except requests.exceptions.RequestException as e:
-            return f'Error: {e}'
-
-
-
+            # catch other network or HTTP errors
+            return f"Error: {e}"

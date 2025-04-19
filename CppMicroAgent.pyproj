@@ -28,6 +28,7 @@
     <Compile Include="flow_manager.py" />
     <Compile Include="HeaderFileCleaner.py" />
     <Compile Include="OllamaClient.py" />
+    <Compile Include="StateMachine.py" />
     <Compile Include="States\Query.py" />
     <Compile Include="States\StateFilterGTestCode.py" />
     <Compile Include="States\StateGenerateCodeFromInput.py" />
@@ -40,9 +41,19 @@
     <Compile Include="States\StateEnd.py" />
     <Compile Include="States\StateInit.py" />
     <Compile Include="States\StateMachine.py" />
+    <Compile Include="States_Coverage\StateEnd.py" />
+    <Compile Include="States_Coverage\StateInit.py" />
+    <Compile Include="States_Coverage\StateIterateSourceFiles.py" />
+    <Compile Include="States_Coverage\StateMachine.py" />
+    <Compile Include="States_Coverage\StateParseCMake.py" />
+    <Compile Include="States_Coverage\States_Function\StateEnd.py" />
+    <Compile Include="States_Coverage\States_Function\StateMachine.py" />
+    <Compile Include="States_Coverage\States_Function\StatesCreateMock.py" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="States_Coverage\" />
     <Folder Include="States\" />
+    <Folder Include="States_Coverage\States_Function\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

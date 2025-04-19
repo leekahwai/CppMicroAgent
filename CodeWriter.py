@@ -10,6 +10,9 @@ class CodeWriter:
         self.filename = filename
         self.flagUT = flagUT
 
+    def set_class_name(self, data:str):
+        self.class_name = data
+
     def extract_class_name(self):
         """Extracts the class name from the C++ code while ignoring comments."""
         lines = self.cpp_code.split("\n")
@@ -40,7 +43,7 @@ class CodeWriter:
 
         raise ValueError("No valid class definition found in the provided C++ code.")
 
-    def process_code(self):
+    def process_code(self, already_has_name=False):
         """Removes the first and last lines of the C++ code and saves it as <ClassName>.h."""
         lines = self.cpp_code.strip().split("\n")
 
@@ -51,11 +54,12 @@ class CodeWriter:
         processed_lines = lines[1:-1]
 
         # Extract class name
-        self.extract_class_name()
+        if (already_has_name == False):
+            self.extract_class_name()
 
         # Save the processed content
         extension = ".h"
-        if self.filename != "":
+        if (self.filename != "") and (already_has_name == False):
             extension = ".cpp"
 
         

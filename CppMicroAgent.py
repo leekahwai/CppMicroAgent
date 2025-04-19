@@ -2,6 +2,7 @@
 import threading
 import time
 from States.StateMachine import StateMachine
+from States_Coverage.StateMachine import StateMachine as StateMachineCoverage
 from States.Query import Query
 import flaskApp
 
@@ -33,7 +34,13 @@ def listen_for_input(stop_event):
             sm = StateMachine(query)
             sm.run()
         elif my_input == "2":
-            print("You chose option 2")
+            user_input = input(" Key in location of CMakeLists.txt > ")  # User input prompt
+            print(f"\nYou entered: {user_input}\n")  # Ensure input is visible
+            query = Query(user_input)
+            
+            sm = StateMachineCoverage(query)
+            sm.run()
+
         else:
             print("Invalid choice.")
 
