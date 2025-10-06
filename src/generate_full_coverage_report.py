@@ -4,9 +4,9 @@ Enhanced coverage report generator that provides detailed analysis
 """
 import os
 import sys
-from States.Query import Query
-from States_Coverage.StateGenerateCoverageReport import StateGenerateCoverageReport
-from States_Coverage.StateParseCMake import StateParseCMake
+from Query import Query
+from states_coverage.StateGenerateCoverageReport import StateGenerateCoverageReport
+from states_coverage.StateParseCMake import StateParseCMake
 
 def generate_detailed_tree_report():
     """Generate a detailed tree structure report"""

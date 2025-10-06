@@ -1,6 +1,6 @@
 ﻿
 from flow_manager import flow
-from States.Query import Query
+from Query import Query
 from OllamaClient import OllamaClient
 from ConfigReader import ConfigReader
 from CodeWriter import CodeWriter

@@ -1,6 +1,6 @@
 
-from States_Coverage.States_Function.StatesCreateMock import StatesCreateMock
-from States_Coverage.States_Function.StateEnd import StateEnd
+from states_coverage.States_Function.StatesCreateMock import StatesCreateMock
+from states_coverage.States_Function.StateEnd import StateEnd
 
 import ConfigReader
 from flow_manager import flow

@@ -1,70 +1,207 @@
-# 🧠 LLM-Powered C++ Code Generation and Quality Assistant
+# 🧠 C++ Micro Agent - Advanced Coverage Improvement System
 
-This project leverages [Ollama](https://ollama.com) and Large Language Models (LLMs) to assist developers in on-premise/on-device C++ code generation and quality assurance for safety critical systems. It uses intelligent, modular **state machines** to automate tasks such as code generation, unit test creation, static analysis, and fuzzing, aiming to streamline and strengthen your development workflow.
+A powerful LLM-powered tool that automatically generates high-quality unit tests for C++ projects with intelligent coverage improvement and cross-platform support (Linux/Windows).
 
 ## 🚀 Key Features
 
-- **LLM-based C++ Code Generation**  
-  Automatically generate C++ functions and classes based on high-level descriptions or templates using powerful LLMs via Ollama. State machine is used to iteratively generate and validate codes using prompt engineering to guide and reinforce code generation to hit an objective using coding metrics. (for instance generation of gtest codes to hit 80% coverage)
+- **🎯 Intelligent Unit Test Generation**: Automatically generates comprehensive unit tests using LLM guidance with iterative coverage improvement
+- **📊 Advanced Coverage Analysis**: Detailed branch, line, and function coverage analysis with lcov/gcov integration
+- **🔄 Iterative Improvement**: ML-enhanced coverage prediction with automatic test regeneration to achieve target coverage
+- **🌐 Cross-Platform Support**: Works on both Linux and Windows with platform-specific compiler detection
+- **📈 Comprehensive Reporting**: Generates detailed HTML and text coverage reports with improvement suggestions
+- **🏗️ Multi-Project Analysis**: Batch analysis capabilities for multiple C++ projects
 
-- **Unit Test Generation with Coverage Awareness**  
-  Creates unit tests tailored to hit as many branches and edge cases as possible. Uses feedback loops to iteratively increase test coverage.
+## 🛠️ Prerequisites
 
-- **Static Analysis**  
-  Integrates LLM-supported static code checks to identify potential issues in logic, performance, and code standards.
+### For Linux:
+```bash
+# Install required tools
+sudo apt update
+sudo apt install -y gcc g++ cmake lcov gcov build-essential
 
-- **Fuzz Testing Automation**  
-  Generate and manage fuzzers to detect unexpected behavior and edge-case bugs early in development.
+# Install Python dependencies
+pip install requests ollama
+```
 
-- **State Machine-Driven Architecture**  
-  Each task (e.g., test creation, coverage validation, fuzzing setup) is controlled by a dedicated state machine for flexibility, debuggability, and traceability.
+### For Windows:
+- **Visual Studio 2022**: Community or Professional with C++ development tools
+- **MinGW**: For GCC compilation (included in project)
 
----
+### Ollama Setup:
+```bash
+# Install Ollama
+curl -fsSL https://ollama.com/install.sh | sh
 
-## 🛠️ Tech Stack
+# Download recommended models
+ollama pull qwen2.5:0.5b        # For code generation
+ollama pull llama3.2:latest     # For unit test generation
+```
 
-- **Ollama**: Local LLM runtime for fast, customizable model inference  
-- **Large Language Models**: (e.g., LLaMA, Mistral, or custom fine-tuned models)  
-- **C++**: Target language for code generation and analysis  
-- **Python**: Control logic and state machine orchestration  
-- **MingW**: For C++ compilation  
-- **libFuzzer / AFL++**: Fuzzing support  
+## 🚀 Quick Start
 
----
+### 1. Basic Usage
+```bash
+# Interactive mode (recommended for first-time users)
+python3 main.py
 
-## 📦 Installation Procedure
-- **Microsoft Visual Studios 2022**: Install Microsoft Visual Studios 2022 Community or Professional from Microsoft. During installation, ensure that python development and c++ desktop development is selected.  
-- **Ollama**: Install Ollama 0.6.0 and above 
-- **Ollama Models**: Download models from selection here https://ollama.com/models (Select 3b models for on-device and <30b models for GPU resources of less than 24GB RAM)
+# Quick one-click analysis
+python3 main.py --quick
 
-It is recommended to use multi-agents mechanism using multiple small LLM models rather than single large LLM for speed and practicality on local devices.
-This is a guide that we can use. 
-- Recommended CPU/GPU resources: 4GB GPU RAM for 3B models, 24GB GPU ram for 21B models. <2B models for CPU inferences.
-- Recommended general NLP and verification states: Gemma3 models from Google.
-- Recommended C++ coding: Qwen2.5-coder models from Alibaba.
-- Recommended C++ gtest: llama3.2 models from Meta.
+# Multi-project batch analysis
+python3 main.py --multi
 
+# View existing reports
+python3 main.py --reports
+```
 
----
+### 2. Configuration
 
-## 📦 Deployment Guide
-- **Struture**: Solution file contains the python development code to generate C++ code. Open Visual Studios Solution in **ADMINISTRATIVE MODE (REQUIRED FOR COMPILATION)** and open the solution file. 
-- **Execution**: Runs the solution. Type the following to run "Write me a C++ header class that does a simple mathematical division operation".
+Edit `CppMicroAgent.cfg` to customize settings:
 
-  * Code Generation State Machine:
-    - State 1: Verify state is code generation and specifically for C++
-    - State 2: Generate C++ code
-    - State 3: Generate GTest/GMock Code
-    - State 4: Compile codes 
-    - State 5: Verify compilation status, if fail, check whether it is generation issue or test generation issue
-    - State 6: Revert to corresponding state(2/3) if fail, otherwise go to next state
-    - State 7: Run coverage 
-    - State 8: Check coverage status and revert to State 3 to improve coverage
-    - State 9: Complete generation
-  * Status: The current project is now on compilation steps. 
+```ini
+[PROJECT_SETTINGS]
+# Point to your CMake project directory
+default_project_path=TestProjects/YourProject/build
 
-- **Goals**: Complete the following state machines: 
-    - Code generation
-    - Pure Coverage Test 
-    - Pure Static Analysis (only available if UT in place)
-    - Pure Fuzzing
+[OUTPUT_SETTINGS]
+# Coverage target percentage
+coverage_target=85.0
+# Maximum improvement iterations
+max_iterations=5
+```
+
+### 3. Project Structure
+
+Your C++ project should have:
+```
+YourProject/
+├── CMakeLists.txt          # Main CMake file
+├── src/                    # Source files
+│   ├── main.cpp
+│   └── your_code.cpp
+└── include/                # Header files
+    └── your_code.h
+```
+
+## 📁 Project Structure
+
+```
+CppMicroAgent/
+├── main.py                 # Main entry point
+├── CppMicroAgent.cfg      # Configuration file
+├── README.md              # This file
+├── src/                   # Core modules
+│   ├── states_coverage/   # Coverage analysis state machine
+│   ├── ConfigReader.py    # Configuration management
+│   ├── OllamaClient.py    # LLM integration
+│   └── ...               # Other core modules
+├── TestProjects/          # Sample and test projects
+│   ├── SampleApplication/ # Example C++ project
+│   ├── nlohmann-json/     # JSON library example
+│   └── ...               # Other test projects
+└── output/                # Generated reports and results
+    └── UnitTestCoverage/  # Coverage analysis results
+```
+
+## 🎯 Usage Examples
+
+### Example 1: Analyze Sample Project
+```bash
+# Run on the included sample application
+python3 main.py --quick
+```
+
+### Example 2: Analyze Your Own Project
+```bash
+# Edit configuration
+nano CppMicroAgent.cfg
+
+# Set your project path
+default_project_path=path/to/your/cmake/project
+
+# Run analysis
+python3 main.py
+# Choose option 1: Complete Coverage Analysis
+```
+
+### Example 3: Batch Analysis
+```bash
+# Analyze multiple projects in TestProjects/
+python3 main.py --multi
+```
+
+## 📊 Understanding Results
+
+After analysis, check the `output/` directory for:
+
+- **📄 coverage_report.txt**: Detailed text report with coverage metrics
+- **🌐 lcov_html/index.html**: Interactive HTML coverage report
+- **🧪 unit_tests/**: Generated unit test files
+- **📈 improvement_history.json**: Coverage improvement tracking
+
+### Coverage Metrics Explained:
+- **Line Coverage**: Percentage of source lines executed
+- **Function Coverage**: Percentage of functions called
+- **Branch Coverage**: Percentage of conditional branches taken
+
+## 🔧 Advanced Configuration
+
+### ML Enhancement Settings:
+```ini
+[ADVANCED_IMPROVEMENT_SETTINGS]
+enable_ml_prediction=true          # Enable ML-enhanced coverage prediction
+enable_branch_analysis=true        # Detailed branch coverage analysis
+enable_boundary_testing=true       # Boundary value testing
+improvement_confidence_threshold=0.7 # Confidence threshold for improvements
+```
+
+### Compiler Settings:
+```ini
+[OLLAMA_SETTINGS]
+gcc_compiler=/usr/bin/g++          # Linux GCC path
+gcov_tool=/usr/bin/gcov            # gcov tool path
+lcov_tool=/usr/bin/lcov            # lcov tool path
+```
+
+## 🚨 Troubleshooting
+
+### Common Issues:
+
+1. **"CMakeLists.txt not found"**
+   - Ensure your project path in config points to a directory containing CMakeLists.txt
+   - Check the `default_project_path` setting in CppMicroAgent.cfg
+
+2. **"Ollama connection failed"**
+   - Verify Ollama is running: `ollama list`
+   - Check if required models are installed: `ollama pull qwen2.5:0.5b`
+
+3. **"No coverage data generated"**
+   - Ensure gcc/g++ and gcov are installed
+   - Verify your C++ project compiles successfully
+   - Check if CMake is properly configured
+
+4. **"Permission denied during compilation"**
+   - On Windows: Run as Administrator
+   - On Linux: Check file permissions and ensure gcc is accessible
+
+### Getting Help:
+```bash
+# Show configuration
+python3 main.py --config
+
+# Check project structure
+python3 main.py --reports
+```
+
+## 🏆 Expected Results
+
+A successful run will achieve:
+- ✅ 80%+ code coverage (configurable)
+- ✅ Comprehensive unit tests for all functions
+- ✅ Branch and edge case coverage
+- ✅ Detailed HTML and text reports
+- ✅ Iterative improvement tracking
+
+## 🤝 Contributing
+
+This tool is designed for safety-critical C++ development with emphasis on high code coverage and quality assurance through intelligent test generation.

@@ -2,8 +2,8 @@
 import os
 import re
 import shutil
-from States_Coverage.States_Function.StateMachine import StateMachine as StateMachineFunction
-from States.Query import Query
+from states_coverage.States_Function.StateMachine import StateMachine as StateMachineFunction
+from Query import Query
 
 class StateIterateSourceFiles():
     def __init__(self):

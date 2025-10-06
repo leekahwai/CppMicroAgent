@@ -177,7 +177,7 @@ def main():
     print("📁 NEW FILES CREATED:")
     files = [
         "CoverageImprovementEngine.py",
-        "States_Coverage/StateAdvancedCoverageImprovement.py", 
+        "states_coverage/StateAdvancedCoverageImprovement.py", 
         "MLCoverageEnhancer.py"
     ]
     

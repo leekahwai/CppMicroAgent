@@ -5,8 +5,8 @@ Quick Multi-Project Coverage Analysis Runner (Smaller projects first)
 import os
 import sys
 import datetime
-from States.Query import Query
-from States_Coverage.StateMachine import StateMachine
+from Query import Query
+from states_coverage.StateMachine import StateMachine
 from ConfigReader import ConfigReader
 
 def analyze_small_projects():
