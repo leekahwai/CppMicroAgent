@@ -2,10 +2,7 @@ from states_coverage.StateInit import StateInit
 from states_coverage.StateEnd import StateEnd
 from states_coverage.StateParseCMake import StateParseCMake
 from states_coverage.StateIterateSourceFiles import StateIterateSourceFiles
-from states_coverage.StateCompileAndMeasureCoverage import StateCompileAndMeasureCoverage
-from states_coverage.StateGenerateUnitTests import StateGenerateUnitTests
-from states_coverage.StateAdvancedCoverageImprovement import StateAdvancedCoverageImprovement
-from states_coverage.StateGenerateCoverageReport import StateGenerateCoverageReport
+from states_coverage.StateAggregateCoverageReports import StateAggregateCoverageReports
 import ConfigReader
 from flow_manager import flow
 from OutputManager import OutputManager
@@ -17,12 +14,9 @@ class StateMachine:
         self.states = {
             "init": StateInit(),
             "end": StateEnd(),
-            "StateParseCMake":StateParseCMake(),
-            "StateIterateSourceFiles":StateIterateSourceFiles(),
-            "StateCompileAndMeasureCoverage":StateCompileAndMeasureCoverage(),
-            "StateGenerateUnitTests":StateGenerateUnitTests(),
-            "StateAdvancedCoverageImprovement":StateAdvancedCoverageImprovement(),
-            "StateGenerateCoverageReport":StateGenerateCoverageReport()
+            "StateParseCMake": StateParseCMake(),
+            "StateIterateSourceFiles": StateIterateSourceFiles(),
+            "StateAggregateCoverageReports": StateAggregateCoverageReports()
         }
         self.current_state = "init"
         self.input_data = input_data
@@ -44,14 +38,11 @@ class StateMachine:
             elif self.current_state == "StateParseCMake":
                 self.current_state = "StateIterateSourceFiles" if proceed else "end"
             elif self.current_state == "StateIterateSourceFiles":
-                self.current_state = "StateCompileAndMeasureCoverage" if proceed else "end"
-            elif self.current_state == "StateCompileAndMeasureCoverage":
-                self.current_state = "StateGenerateUnitTests" if proceed else "end"
-            elif self.current_state == "StateGenerateUnitTests":
-                self.current_state = "StateAdvancedCoverageImprovement" if proceed else "end"
-            elif self.current_state == "StateAdvancedCoverageImprovement":
-                self.current_state = "StateGenerateCoverageReport" if proceed else "end"
-            elif self.current_state == "StateGenerateCoverageReport":
+                # After iterating all source files and functions (which now includes 
+                # per-function test generation, compilation, and coverage measurement),
+                # aggregate all the coverage reports
+                self.current_state = "StateAggregateCoverageReports" if proceed else "end"
+            elif self.current_state == "StateAggregateCoverageReports":
                 self.current_state = "end" if proceed else "end"
             elif self.current_state == "end":
                 proceed, input_data = self.states[self.current_state].run(self.input_data)
