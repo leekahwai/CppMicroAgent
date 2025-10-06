@@ -1,8 +1,8 @@
 import os
+import platform
 
 from ConfigReader import ConfigReader
 from flow_manager import flow
-
 
 
 class StateInit():
@@ -13,14 +13,47 @@ class StateInit():
     def run(self, input_data):
         flow.transition("StateInit")
         print("[StateInit] Processing input:", input_data)
-        if (self.configReader.get_vc_installdir() != ""):
-            if self.check_vc_installation():
+        
+        # Check if we're on Linux
+        if platform.system() == "Linux":
+            if self.check_linux_toolchain():
                 return self.check_ollama_installation(), input_data
             else:
-                return False, input
-        elif (self.check_mingw_installation()):
-            return self.check_ollama_installation(), input_data
+                return False, input_data
+        else:
+            # Original Windows logic
+            if (self.configReader.get_vc_installdir() != ""):
+                if self.check_vc_installation():
+                    return self.check_ollama_installation(), input_data
+                else:
+                    return False, input_data
+            elif (self.check_mingw_installation()):
+                return self.check_ollama_installation(), input_data
         return False, input_data
+    
+    def check_linux_toolchain(self):
+        print("Verifying installation of Linux C++ toolchain...")
+        
+        # Check for g++
+        gcc_path = self.configReader.get_gcc_compiler()
+        if not os.path.exists(gcc_path):
+            print(f"[StateInit] g++ not found at: {gcc_path}")
+            return False
+        
+        # Check for gcov
+        gcov_path = self.configReader.get_gcov_tool()
+        if not os.path.exists(gcov_path):
+            print(f"[StateInit] gcov not found at: {gcov_path}")
+            return False
+            
+        # Check for lcov
+        lcov_path = self.configReader.get_lcov_tool()
+        if not os.path.exists(lcov_path):
+            print(f"[StateInit] lcov not found at: {lcov_path}")
+            return False
+            
+        print("[StateInit] Linux C++ toolchain found.")
+        return True
     
     def check_vc_installation(self):
         print ("Verifying installation of Visual Studio...")
@@ -47,15 +80,53 @@ class StateInit():
             return False
 
     def check_ollama_installation(self):
-        # Expand environment variables
-        ollama_dir = os.path.expandvars(r"%LOCALAPPDATA%\Programs\Ollama")
-    
-        # Check if the directory exists
-        if os.path.exists(ollama_dir):
-            print(f"Ollama is installed at: {ollama_dir}")
-            return self.check_ollama_data_folder()
+        # Check Linux environment
+        if platform.system() == "Linux":
+            # Check if ollama is available in PATH
+            import shutil
+            if shutil.which('ollama') is not None:
+                print("Ollama is installed and available in PATH")
+                return self.check_ollama_models_linux()
+            else:
+                print("Ollama is not installed or not in PATH")
+                return False
         else:
-            print("Ollama is not installed in the default location.")
+            # Original Windows logic
+            # Expand environment variables
+            ollama_dir = os.path.expandvars(r"%LOCALAPPDATA%\Programs\Ollama")
+        
+            # Check if the directory exists
+            if os.path.exists(ollama_dir):
+                print(f"Ollama is installed at: {ollama_dir}")
+                return self.check_ollama_data_folder()
+            else:
+                print("Ollama is not installed in the default location.")
+                return False
+
+    def check_ollama_models_linux(self):
+        """Check if the configured models are available in Linux"""
+        try:
+            import subprocess
+            # Run 'ollama list' to get available models
+            result = subprocess.run(['ollama', 'list'], capture_output=True, text=True)
+            if result.returncode != 0:
+                print("Failed to list Ollama models")
+                return False
+                
+            available_models = result.stdout
+            
+            # Check if our configured model is available
+            model_name = self.configReader.get_model_used()
+            if model_name in available_models:
+                print(f"Ollama model '{model_name}' is available")
+                return True
+            else:
+                print(f"Ollama model '{model_name}' is not found. Available models:")
+                print(available_models)
+                return False
+                
+        except Exception as e:
+            print(f"Error checking Ollama models: {e}")
             return False
 
     def check_ollama_data_folder(self):

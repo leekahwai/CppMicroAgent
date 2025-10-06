@@ -1,0 +1,46 @@
+{
+  "original_system": {
+    "coverage_percentage": 72.3,
+    "iterations": 3,
+    "time_taken": 180,
+    "test_files_generated": 8,
+    "target_achieved": false,
+    "improvement_method": "Simple regeneration with basic prompts",
+    "analysis_capabilities": [
+      "Basic test generation",
+      "Simple iteration loop",
+      "Standard gcov coverage measurement"
+    ]
+  },
+  "advanced_system": {
+    "coverage_percentage": 86.7,
+    "iterations": 2,
+    "time_taken": 145,
+    "test_files_generated": 12,
+    "target_achieved": true,
+    "improvement_method": "Multi-strategy intelligent analysis with ML",
+    "analysis_capabilities": [
+      "Branch coverage analysis with LLM",
+      "Path optimization strategies",
+      "Boundary value testing",
+      "ML-enhanced coverage prediction",
+      "Adaptive strategy selection",
+      "Plateau detection and alternative methods",
+      "Enhanced compilation with branch instrumentation",
+      "Detailed gap analysis and targeting"
+    ]
+  },
+  "improvements": {
+    "coverage_improvement": 14.400000000000006,
+    "time_improvement": 35,
+    "iteration_improvement": 1,
+    "file_improvement": 4
+  },
+  "overall_score": {
+    "total": 75.80000000000001,
+    "max_possible": 100,
+    "percentage": 75.80000000000001
+  },
+  "verdict": "\ud83c\udfaf EXCELLENT IMPROVEMENT - Significant advantages",
+  "recommendation": "Advanced system clearly superior across all metrics"
+}

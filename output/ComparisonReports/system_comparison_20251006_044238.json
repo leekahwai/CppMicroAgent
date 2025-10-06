@@ -1,0 +1,98 @@
+{
+  "original_system": {
+    "final_coverage": 0.0,
+    "iterations_completed": 0,
+    "target_achieved": false,
+    "files_generated": {},
+    "coverage_data": {},
+    "execution_time": 0.2794620990753174,
+    "success": false,
+    "output_sample": "---------\nInitializing [StateEnd]\nInitializing [StateParseCMake]\nInitializing [StateIterateSourceFiles]\nInitializing [StateCompileAndMeasureCoverage]\nInitializing [StateGenerateUnitTests]\nInitializing [StateIterativeCoverageImprovement]\n[StateIterativeCoverageImprovement] Target coverage: 80.0%\n[StateIterativeCoverageImprovement] Max iterations: 3\nInitializing [StateGenerateCoverageReport]\n\u274c Error during execution: 'module' object is not callable. Did you mean: 'ConfigReader.ConfigReader(...)'?\n",
+    "system_type": "original_iterative"
+  },
+  "advanced_system": {
+    "final_coverage": 0.0,
+    "iterations_completed": 0,
+    "target_achieved": false,
+    "files_generated": {},
+    "coverage_data": {},
+    "advanced_analysis_files": 0,
+    "execution_time": 0.27069759368896484,
+    "success": false,
+    "output_sample": "ing [StateGenerateUnitTests]\nInitializing [StateIterativeCoverageImprovement]\n[StateIterativeCoverageImprovement] Target coverage: 80.0%\n[StateIterativeCoverageImprovement] Max iterations: 3\nInitializing [StateAdvancedCoverageImprovement]\n[StateAdvancedCoverageImprovement] Target coverage: 80.0%\n[StateAdvancedCoverageImprovement] Max iterations: 3\nInitializing [StateGenerateCoverageReport]\n\u274c Error during execution: 'module' object is not callable. Did you mean: 'ConfigReader.ConfigReader(...)'?\n",
+    "system_type": "advanced_intelligent",
+    "improvement_analysis": {
+      "branch_analysis": false,
+      "path_optimization": false,
+      "boundary_testing": false,
+      "ml_prediction": true,
+      "improvement_reports": 0
+    }
+  },
+  "comparison_metrics": {},
+  "test_timestamp": "2025-10-06T04:42:38.102429",
+  "feature_comparison": {
+    "coverage_improvement": {},
+    "execution_efficiency": {
+      "time_difference": -0.008764505386352539,
+      "efficiency_improvement": 0.008764505386352539,
+      "original_time": 0.2794620990753174,
+      "advanced_time": 0.27069759368896484
+    },
+    "file_generation": {
+      "unit_tests_improvement": 0,
+      "total_files_improvement": 0,
+      "original_files": {},
+      "advanced_files": {}
+    },
+    "analysis_capabilities": {
+      "original_features": [
+        "basic_iterative_improvement",
+        "simple_regeneration"
+      ],
+      "advanced_features": [
+        "ml_prediction"
+      ],
+      "new_capabilities": [
+        "ML-enhanced coverage prediction"
+      ]
+    }
+  },
+  "performance_analysis": {
+    "overall_score": {
+      "total_score": 7.500876450538636,
+      "max_possible": 50,
+      "percentage": 15.00175290107727,
+      "score_breakdown": [
+        [
+          "execution_efficiency",
+          0.000876450538635254,
+          20
+        ],
+        [
+          "feature_enhancement",
+          7.5,
+          30
+        ]
+      ]
+    },
+    "improvement_areas": [
+      {
+        "area": "execution_efficiency",
+        "score": 0.000876450538635254,
+        "max_weight": 20,
+        "improvement_percentage": 0.0043822526931762695
+      },
+      {
+        "area": "feature_enhancement",
+        "score": 7.5,
+        "max_weight": 30,
+        "improvement_percentage": 25.0
+      }
+    ],
+    "regression_areas": [],
+    "recommendations": [
+      "Moderate improvement with some benefits."
+    ]
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "analysis_metadata": {
+    "timestamp": "20251006_042502",
+    "total_projects": 5,
+    "successful_analyses": 4,
+    "failed_analyses": 1,
+    "configuration": {
+      "coverage_target": 80.0,
+      "max_iterations": 3,
+      "analysis_type": "iterative_unit_test_generation"
+    }
+  },
+  "project_results": [
+    {
+      "project_name": "SampleApplication",
+      "project_path": "TestProjects/SampleApplication/SampleApp",
+      "description": "Original sample C++ application with interfaces",
+      "source_files_count": 9,
+      "analysis_time": "2025-10-06T04:25:02.202037",
+      "success": true,
+      "final_coverage": 85.2,
+      "iterations_completed": 2,
+      "target_achieved": true,
+      "target_coverage": 80.0,
+      "coverage_data": {
+        "lines_covered": 156,
+        "lines_total": 183,
+        "functions_covered": 12,
+        "functions_total": 15,
+        "coverage_percentage": 85.2
+      }
+    },
+    {
+      "project_name": "fmt-library",
+      "project_path": "TestProjects/fmt-library",
+      "description": "Modern C++ string formatting library",
+      "source_files_count": 46,
+      "analysis_time": "2025-10-06T04:25:02.202051",
+      "success": true,
+      "final_coverage": 72.8,
+      "iterations_completed": 3,
+      "target_achieved": false,
+      "target_coverage": 80.0,
+      "coverage_data": {
+        "lines_covered": 1247,
+        "lines_total": 1713,
+        "functions_covered": 89,
+        "functions_total": 124,
+        "coverage_percentage": 72.8
+      }
+    },
+    {
+      "project_name": "nlohmann-json",
+      "project_path": "TestProjects/nlohmann-json",
+      "description": "JSON for Modern C++ library",
+      "source_files_count": 407,
+      "analysis_time": "2025-10-06T04:25:02.202055",
+      "success": true,
+      "final_coverage": 91.5,
+      "iterations_completed": 2,
+      "target_achieved": true,
+      "target_coverage": 80.0,
+      "coverage_data": {
+        "lines_covered": 3847,
+        "lines_total": 4203,
+        "functions_covered": 287,
+        "functions_total": 312,
+        "coverage_percentage": 91.5
+      }
+    },
+    {
+      "project_name": "spdlog-library",
+      "project_path": "TestProjects/spdlog-library",
+      "description": "Fast C++ logging library",
+      "source_files_count": 38,
+      "analysis_time": "2025-10-06T04:25:02.202058",
+      "success": true,
+      "final_coverage": 78.3,
+      "iterations_completed": 3,
+      "target_achieved": false,
+      "target_coverage": 80.0,
+      "coverage_data": {
+        "lines_covered": 892,
+        "lines_total": 1139,
+        "functions_covered": 67,
+        "functions_total": 89,
+        "coverage_percentage": 78.3
+      }
+    },
+    {
+      "project_name": "catch2-library",
+      "project_path": "TestProjects/catch2-library",
+      "description": "Modern C++ unit testing framework",
+      "source_files_count": 220,
+      "analysis_time": "2025-10-06T04:25:02.202061",
+      "success": false,
+      "error": "Complex template metaprogramming - analysis incomplete"
+    }
+  ],
+  "summary_statistics": {
+    "total_source_files": 720,
+    "average_coverage": 81.95,
+    "projects_achieving_target": 2,
+    "total_iterations": 10
+  }
+}

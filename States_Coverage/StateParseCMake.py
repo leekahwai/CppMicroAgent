@@ -83,11 +83,11 @@ class StateParseCMake():
                                 # Add the full path to the set to ensure uniqueness
                                 final_include_dirs.add(os.path.join(root, file))
 
-            # Normalize paths by replacing forward slashes with backslashes
+            # Normalize paths (Linux uses forward slashes)
             normalized_include_dirs = [os.path.normpath(dir) for dir in final_include_dirs]
 
-            # Filter out paths containing 'out\\build'
-            filtered_include_dirs = [dir for dir in normalized_include_dirs if 'out\\build' not in dir]
+            # Filter out paths containing 'out/build' (Linux equivalent)
+            filtered_include_dirs = [dir for dir in normalized_include_dirs if 'out/build' not in dir and 'out\\build' not in dir]
 
             # Remove duplicates and sort the paths
             include_dirs = sorted(set(filtered_include_dirs))

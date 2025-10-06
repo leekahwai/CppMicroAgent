@@ -310,7 +310,7 @@ class StateIterateSourceFiles():
                                 sm.run()
 
     
-        print(f"[StateEnd] Reached {unit_test_coverage_dir} creation state.")
+        print(f"[StateIterateSourceFiles] Completed processing {unit_test_coverage_dir}.")
 
-        return False, None # Stop state machine
+        return True, input_data # Continue to coverage report generation
 
