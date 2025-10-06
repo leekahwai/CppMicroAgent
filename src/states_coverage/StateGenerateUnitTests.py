@@ -219,6 +219,9 @@ class StateGenerateUnitTests():
     def _create_unit_test_prompt(self, source_file, source_content, header_content, coverage_info):
         """Create comprehensive prompt for unit test generation"""
         
+        # Extract the header filename from source_file
+        source_header = os.path.splitext(os.path.basename(source_file))[0] + ".h"
+        
         prompt = f"""Generate comprehensive unit tests using Google Test (gtest) framework for the following C++ source file.
 
 TARGET FILE: {source_file}
@@ -232,6 +235,14 @@ HEADER FILE:
 ```cpp
 {header_content}
 ```
+
+REQUIRED INCLUDES:
+The unit test MUST include the following headers:
+- #include "{source_header}" (the header file for the source being tested)
+- #include <iostream>
+- #include <string>
+- #include <vector>
+- #include <gtest/gtest.h>
 
 COVERAGE ANALYSIS:
 - Current coverage: {coverage_info['coverage_percentage']:.1f}%
