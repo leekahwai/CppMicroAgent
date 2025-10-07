@@ -6,17 +6,20 @@ This package contains the core modules and utilities for the C++ Micro Agent
 coverage improvement system.
 
 Core Modules:
-- CoverageImprovementEngine: Advanced coverage analysis and improvement
-- MLCoverageEnhancer: Machine learning enhanced coverage capabilities  
-- StateMachine: State management for coverage workflows
 - ConfigReader: Configuration file parsing and management
 - OutputManager: Output generation and management
+- Query: Project query and analysis utilities
+- CoverageImprovementEngine: Advanced coverage analysis and improvement
 - OllamaClient: AI integration for code generation
 - CodeWriter: Code generation and file management
-- HeaderFileCleaner: C++ header file processing utilities
 - flow_manager: Workflow orchestration and management
 
-states_coverage: Advanced coverage improvement state machines and workflows
+Sub-packages:
+- states_coverage: Advanced coverage improvement state machines and workflows
+- state_coverage: Direct test generation and analysis scripts
+
+Main Entry Point:
+- Use quick_start.sh for interactive access to all features
 """
 
 __version__ = "2.0.0"
@@ -33,10 +36,7 @@ __all__ = [
     'OutputManager',
     'Query',
     'CoverageImprovementEngine',
-    'MLCoverageEnhancer', 
-    'StateMachine',
     'OllamaClient',
     'CodeWriter',
-    'HeaderFileCleaner',
     'flow_manager'
 ]
