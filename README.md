@@ -53,21 +53,6 @@ This interactive menu provides:
 4. **View Existing Reports** - Access previously generated reports
 5. **Exit**
 
-### Alternative: Direct Python Usage
-```bash
-# Interactive mode (advanced users)
-python3 main.py
-
-# Quick one-click analysis
-python3 main.py --quick
-
-# Multi-project batch analysis
-python3 main.py --multi
-
-# View existing reports
-python3 main.py --reports
-```
-
 ### Your First Run
 ```bash
 # Step 1: Run the quick start script
@@ -373,7 +358,7 @@ NOTE: This option does NOT use Ollama/LLM
 ```
 CppMicroAgent/
 ├── quick_start.sh          # 🎯 MAIN ENTRY POINT (interactive menu)
-├── main.py                 # Alternative Python entry point
+├── install.sh              # Installation script
 ├── CppMicroAgent.cfg       # Configuration file
 ├── README.md               # This file
 ├── src/                    # Core modules
@@ -421,11 +406,13 @@ nano src/state_coverage/generate_and_build_tests.py
 ./quick_start.sh
 ```
 
-### Example 3: Python Direct Usage
+### Example 3: Direct Python Script Usage
 ```bash
-# For advanced users who want more control
-python3 main.py
-# Choose option 1: Complete Coverage Analysis
+# Run Option 1 directly
+python3 src/state_coverage/generate_and_build_tests.py
+
+# Run Option 2 directly
+python3 src/run_coverage_analysis.py
 ```
 
 ## 📊 Understanding Results
@@ -473,27 +460,6 @@ output_root = Path("/workspaces/CppMicroAgent/output/ConsolidatedTests")
 **GoogleTest Location**: Edit same file (line ~840)
 ```python
 self.gtest_root = Path("/workspaces/CppMicroAgent/googletest-1.16.0")
-```
-
-### Advanced Configuration (main.py)
-For advanced usage via `main.py`, edit `CppMicroAgent.cfg`:
-
-```ini
-[PROJECT_SETTINGS]
-# Point to your CMake project directory
-default_project_path=TestProjects/YourProject/build
-
-[OUTPUT_SETTINGS]
-# Coverage target percentage
-coverage_target=85.0
-# Maximum improvement iterations
-max_iterations=5
-
-[OLLAMA_SETTINGS]
-# Compiler settings
-gcc_compiler=/usr/bin/g++
-gcov_tool=/usr/bin/gcov
-lcov_tool=/usr/bin/lcov
 ```
 
 ## 🚨 Troubleshooting
@@ -576,10 +542,9 @@ A successful run through quick_start.sh will produce:
 # Primary way to use the tool
 ./quick_start.sh              # Interactive menu (RECOMMENDED)
 
-# Direct Python access (advanced)
-python3 main.py               # Full interactive mode
-python3 main.py --quick       # Quick analysis
-python3 main.py --multi       # Batch analysis
+# Direct script execution (advanced)
+python3 src/state_coverage/generate_and_build_tests.py   # Option 1
+python3 src/run_coverage_analysis.py                     # Option 2
 ```
 
 ### Directory Quick Access:
