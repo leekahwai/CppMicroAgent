@@ -2,9 +2,9 @@
 StateCompileFunctionTest - Compile the generated test with retry logic
 """
 
-from flow_manager import flow
-from OllamaClient import OllamaClient
-from ConfigReader import ConfigReader
+from ...flow_manager import flow
+from ...OllamaClient import OllamaClient
+from ...ConfigReader import ConfigReader
 import os
 import subprocess
 import json

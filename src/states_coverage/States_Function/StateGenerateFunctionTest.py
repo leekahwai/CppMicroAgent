@@ -2,10 +2,10 @@
 StateGenerateFunctionTest - Generate unit test for a specific function
 """
 
-from flow_manager import flow
-from OllamaClient import OllamaClient
-from ConfigReader import ConfigReader
-from CodeWriter import CodeWriter
+from ...flow_manager import flow
+from ...OllamaClient import OllamaClient
+from ...ConfigReader import ConfigReader
+from ...CodeWriter import CodeWriter
 import os
 import json
 

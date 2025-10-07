@@ -1,6 +1,6 @@
 import os
 import datetime
-from flow_manager import flow
+from ..flow_manager import flow
 
 class StateGenerateCoverageReport():
     def __init__(self):

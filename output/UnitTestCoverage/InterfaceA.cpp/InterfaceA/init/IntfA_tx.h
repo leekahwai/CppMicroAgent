@@ -17,12 +17,14 @@ public:
 
 	bool init();
 	void close();
+
 	int getTxStats();
 	int getRxStats();
 
 private:
 	IntfA_Tx intfTx;
 	IntfA_Rx intfRx;
+
 };
 
 #endif

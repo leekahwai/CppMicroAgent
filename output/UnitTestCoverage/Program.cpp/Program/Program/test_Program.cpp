@@ -1,9 +1,28 @@
 #include <gtest/gtest.h>
 
-class Program : public ::InterfaceA::Instance {
+// Program.h
+#ifndef PROGRAM_H
+#define PROGRAM_H
+#include "InterfaceA.h"
+#include "InterfaceB.h"
+
+
+class Program {
 public:
-    ~Program() {}
+	Program();
+	~Program();
+	void run();
+
+private:
+	InterfaceA a;
+	InterfaceB b;
+
 };
+
+#endif // PROGRAM_H
+
+// Program.cpp
+#include "Program.h"
 
 Program::Program()
 {
@@ -11,11 +30,7 @@ Program::Program()
 
 void Program::run()
 {
-    // Use mock headers for dependencies if necessary
-    ::InterfaceA::Instance::init();
-    InterfaceB::Instance::init();
-
-    // Test cases can be defined here
-
-    // Add more test cases as needed
+    InterfaceA a;
+    InterfaceB b;
+    EXPECT_EQ(a.getValue(), 0); // Should be 0 if the program works correctly
 }

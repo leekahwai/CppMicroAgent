@@ -1,13 +1,22 @@
-
-#pragma once
-
-using namespace InterfaceA;  // Use namespaces for clarity
-using namespace InterfaceB; // Similarly, use the same namespaces
-
 #ifndef PROGRAM_H
 #define PROGRAM_H
-#include "InterfaceA.h"
-#include "InterfaceB.h"
+
+#include <iostream>
+using namespace std;
+
+namespace InterfaceA {
+    class A {
+    public:
+        void init() {}
+    };
+}
+
+namespace InterfaceB {
+    class B {
+    public:
+        void init() {}
+    };
+}
 
 class Program {
 public:
@@ -15,9 +24,9 @@ public:
 	~Program();
 	void run();
 private:
-	InterfaceA a;
-	InterfaceB b;
+	InterfaceA::A a;
+	InterfaceB::B b;
+
 };
 
 #endif
-

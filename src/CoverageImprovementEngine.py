@@ -10,8 +10,8 @@ import ast
 import subprocess
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Tuple
-from ConfigReader import ConfigReader
-from OllamaClient import OllamaClient
+from .ConfigReader import ConfigReader
+from .OllamaClient import OllamaClient
 import json
 
 class CoverageImprovementStrategy(ABC):

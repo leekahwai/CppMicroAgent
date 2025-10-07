@@ -1,6 +1,8 @@
 #ifndef PROGRAMAPP_H
 #define PROGRAMAPP_H
 
+#include <thread>
+#include <chrono>
 #include "InterfaceA.h"
 #include "InterfaceB.h"
 

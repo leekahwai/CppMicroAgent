@@ -1,9 +1,9 @@
-﻿from flow_manager import flow
+from ..flow_manager import flow
 import os
 import re
 import shutil
-from states_coverage.States_Function.StateMachine import StateMachine as StateMachineFunction
-from Query import Query
+from .States_Function.StateMachine import StateMachine as StateMachineFunction
+from ..Query import Query
 
 class StateIterateSourceFiles():
     def __init__(self):

@@ -1,22 +1,55 @@
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "Program.h"
-#include "InterfaceA.h"
-#include "InterfaceB.h"
 
-class Program : public Program {
-public:
-    ~Program() override { std::cout << "Program destroyed." << std::endl; }
+void Program::run()
+{
+    // Run implementation
+    InterfaceA a;
+    InterfaceB b;
 
-protected:
-    void run() override {
-        EXPECT_CALL(*this, a).Times(1);
-        return;
-    }
-};
+    EXPECT_CALL(a, getInterface())
+        .WillOnce(Invoke([this](std::string name) { return InterfaceA(name); }));
 
-TEST(ProgramTest, ProgramRun) {
-    EXPECT_CALL(*this, a).Times(1);
-    auto test = std::make_unique<Program>();
-    test->run();
+    EXPECT_CALL(b, getInterface())
+        .WillOnce(Invoke([this](std::string name) { return InterfaceB(name); }));
+
+    a.init();
+    b.init();
+
+    // Act
+    Program prog;
+    prog.run();
+
+    // Assert
+    EXPECT_EQ("Hello from InterfaceA", a.getInterface().getName());
+    EXPECT_EQ("Hello from InterfaceB", b.getInterface().getName());
+}
+
+TEST(Program, run_test)
+{
+    // Arrange
+    EXPECT_CALL(a, getInterface())
+        .WillOnce(Invoke([this](std::string name) { return InterfaceA(name); }));
+
+    // Act
+    Program prog;
+    prog.run();
+
+    // Assert
+    EXPECT_EQ("Hello from InterfaceA", a.getInterface().getName());
+}
+
+TEST(Program, run_test2)
+{
+    // Arrange
+    EXPECT_CALL(b, getInterface())
+        .WillOnce(Invoke([this](std::string name) { return InterfaceB(name); }));
+
+    // Act
+    Program prog;
+    prog.run();
+
+    // Assert
+    EXPECT_EQ("Hello from InterfaceB", b.getInterface().getName());
 }

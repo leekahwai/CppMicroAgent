@@ -1,9 +1,9 @@
-﻿
-from flow_manager import flow
-from Query import Query
-from OllamaClient import OllamaClient
-from ConfigReader import ConfigReader
-from CodeWriter import CodeWriter
+
+from ...flow_manager import flow
+from ...Query import Query
+from ...OllamaClient import OllamaClient
+from ...ConfigReader import ConfigReader
+from ...CodeWriter import CodeWriter
 import os
 import re
 import json

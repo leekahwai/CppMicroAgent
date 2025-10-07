@@ -1,9 +1,9 @@
 import os
 import subprocess
 import shutil
-from flow_manager import flow
-from ConfigReader import ConfigReader
-from CoverageImprovementEngine import CoverageImprovementEngine
+from ..flow_manager import flow
+from ..ConfigReader import ConfigReader
+from ..CoverageImprovementEngine import CoverageImprovementEngine
 
 class StateAdvancedCoverageImprovement():
     def __init__(self):

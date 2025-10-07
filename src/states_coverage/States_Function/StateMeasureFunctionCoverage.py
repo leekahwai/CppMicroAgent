@@ -2,8 +2,8 @@
 StateMeasureFunctionCoverage - Measure coverage for a specific function test
 """
 
-from flow_manager import flow
-from ConfigReader import ConfigReader
+from ...flow_manager import flow
+from ...ConfigReader import ConfigReader
 import os
 import subprocess
 import json

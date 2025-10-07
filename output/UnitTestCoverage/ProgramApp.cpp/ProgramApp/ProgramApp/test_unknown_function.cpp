@@ -1,27 +1,33 @@
-// ProgramAppTest.cpp
 #include <gtest/gtest.h>
-#include <string>
 
-class ProgramApp {
- public:
-  explicit ProgramApp(InterfaceA a1, InterfaceB b1);
-  ~ProgramApp();
-
- private:
-  ProgramApp() = delete;
-  InterfaceA a;
-  InterfaceB b;
-
-  bool bStart;
+// Mock implementations of the interfaces for testing purposes
+class InterfaceA {
+public:
+    void getRxStats() const { return; }
+    void getTxStats() const { return; }
 };
 
-TEST(ProgramAppTest, TestRun) {
-  // Arrange: Create an instance of the program app and its interfaces
-  ProgramApp programApp(InterfaceA("value1"), InterfaceB("value2"));
-  
-  // Act:
-  programApp.run();
-  
-  // Assert:
-  EXPECT_TRUE(programApp.bStart);  // Expected start condition
+class InterfaceB {
+public:
+    void getRxStats() const { return; }
+    void getTxStats() const { return; }
+};
+
+// Mock object for testing the interface function
+class FakeInterfaceA : public InterfaceA {};
+
+// Mock object for testing the interface function
+class FakeInterfaceB : public InterfaceB {};
+
+TEST_F(ProgramAppTest, normalFunction) {
+    ProgramApp app1(FakeInterfaceA{ 1 }, FakeInterfaceB{ 2 });
+    EXPECT_CALL(app1, bStart).WillOnce(testing::RepeatRepeated({ true, false }));
+
+    app1.run();
+}
+
+// Function to test the unknown function
+void unknown_function() {
+    // Implementation for testing the unknown function
+    std::cout << "Unknown function implementation." << std::endl;
 }

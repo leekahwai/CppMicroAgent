@@ -4,7 +4,7 @@ StateAggregateCoverageReports - Aggregate all function-level coverage into final
 
 import os
 import datetime
-from flow_manager import flow
+from ..flow_manager import flow
 
 class StateAggregateCoverageReports():
     def __init__(self):

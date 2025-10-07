@@ -1,51 +1,15 @@
 #include <gtest/gtest.h>
 
-// ProgramAppTest is a Google Test (gtest) unit test for the 'ProgramApp' function.
-#include "MockInterfaceA.h"
-#include "MockInterfaceB.h"
-#include "ProgramApp.h"
+// Function to verify initialization of program app with correct data structures.
+void ProgramAppTest()
+{
+    // Arrange: Initialize and set up the program app with correct data structures.
+    ProgramApp app1(InterfaceA1, InterfaceB1);
+    ProgramApp app2(InterfaceC1, InterfaceD1);
 
-class ProgramAppTest : public ::testing::Test {
-protected:
-    MockInterfaceA mocka;
-    MockInterfaceB mockb;
-    bool bStart;
+    // Act: Call the run function to initialize the program app.
+    app1.run();
+    app2.run();
 
-public:
-    void SetUp() override {
-        mocka = &mocka;  // Assume 'originalA' is used to simulate original code
-        mockb = &mockb;
-    }
-};
-
-TEST_F(ProgramAppTest, ProgramApp) {
-    // Set up the mock objects
-    InterfaceA* a1 = &mocka;
-    MockInterfaceA mockA(a1);
-
-    // Run the application with mock interfaces
-    bStart = true;
-    bRun();
-
-    // Verify that the application behaves as expected
-    EXPECT_CALL(mockA, a.GetRxStats()).WillOnce(Invoke([](const std::vector<double>&) {
-        // Add assertions here to verify Rx stats are being called appropriately
-    }));
-    EXPECT_CALL(mockA, a.GetTxStats()).WillOnce(Return(mockb));
-    EXPECT_CALL(mockA, bStart).WillOnce(Return(true));
-}
-
-TEST_F(ProgramAppTest, ProgramAppWithError) {
-    // Create an error-like object and use it in this test
-    InterfaceA* errorObject = nullptr;  // Assume 'errorObject' is used to simulate errors
-
-    bStart = true;
-    bRun();
-
-    // Verify that the application behaves as expected
-    EXPECT_CALL(mockA, a.GetRxStats()).WillOnce(Invoke([](const std::vector<double>&) {
-        // Add assertions here to verify Rx stats are being called appropriately
-    }));
-    EXPECT_CALL(mockA, a.GetTxStats()).WillOnce(Return(errorObject));
-    EXPECT_CALL(mockA, bStart).WillOnce(Return(true));
+    // Assert: Verify that both application objects have initialized successfully.
 }

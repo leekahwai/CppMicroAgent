@@ -24,6 +24,7 @@ public:
 private:
     IntfA_Tx intfTx;
     IntfA_Rx intfRx;
-};
 
+private:
+};
 #endif

@@ -1,5 +1,5 @@
 import re
-from Query import Query
+from .Query import Query
 
 class CodeWriter:
     def __init__(self, input_data: Query, cpp_code: str, directory: str, filename: str = "", flagUT :bool = False):

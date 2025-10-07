@@ -1,12 +1,12 @@
 
-from states_coverage.States_Function.StatesCreateMock import StatesCreateMock
-from states_coverage.States_Function.StateGenerateFunctionTest import StateGenerateFunctionTest
-from states_coverage.States_Function.StateCompileFunctionTest import StateCompileFunctionTest
-from states_coverage.States_Function.StateMeasureFunctionCoverage import StateMeasureFunctionCoverage
-from states_coverage.States_Function.StateEnd import StateEnd
+from .StatesCreateMock import StatesCreateMock
+from .StateGenerateFunctionTest import StateGenerateFunctionTest
+from .StateCompileFunctionTest import StateCompileFunctionTest
+from .StateMeasureFunctionCoverage import StateMeasureFunctionCoverage
+from .StateEnd import StateEnd
 
-import ConfigReader
-from flow_manager import flow
+from ...ConfigReader import ConfigReader
+from ...flow_manager import flow
 
 class StateMachine:
     def __init__(self, input_data):
@@ -21,7 +21,7 @@ class StateMachine:
         }
         self.current_state = "StatesCreateMock"
         self.input_data = input_data
-        ConfigReader.ConfigReader()
+        self.configReader = ConfigReader()
     
     def run(self):
         flow.set_initial("init")

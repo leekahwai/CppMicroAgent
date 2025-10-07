@@ -1,11 +1,11 @@
-from states_coverage.StateInit import StateInit
-from states_coverage.StateEnd import StateEnd
-from states_coverage.StateParseCMake import StateParseCMake
-from states_coverage.StateIterateSourceFiles import StateIterateSourceFiles
-from states_coverage.StateAggregateCoverageReports import StateAggregateCoverageReports
-import ConfigReader
-from flow_manager import flow
-from OutputManager import OutputManager
+from .StateInit import StateInit
+from .StateEnd import StateEnd
+from .StateParseCMake import StateParseCMake
+from .StateIterateSourceFiles import StateIterateSourceFiles
+from .StateAggregateCoverageReports import StateAggregateCoverageReports
+from ..ConfigReader import ConfigReader
+from ..flow_manager import flow
+from ..OutputManager import OutputManager
 
 class StateMachine:
     def __init__(self, input_data):
@@ -20,7 +20,7 @@ class StateMachine:
         }
         self.current_state = "init"
         self.input_data = input_data
-        self.configReader = ConfigReader.ConfigReader()
+        self.configReader = ConfigReader()
         self.outputManager = OutputManager()
     
     def run(self):

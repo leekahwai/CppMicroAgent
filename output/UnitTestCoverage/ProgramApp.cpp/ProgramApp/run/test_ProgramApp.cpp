@@ -1,24 +1,16 @@
-#include "gtest/gtest.h"
 #include "ProgramApp.h"
+#include <gtest/gtest.h>
+#include "InterfaceA.h"
+#include "InterfaceB.h"
 
-class InterfaceA {
-public:
-    void BasicFunctionality() const { std::cout << "InterfaceA BasicFunctionality called."; }
-};
+TEST(ProgramAppTest, BasicFunctionality) {
+	// Arrange
+	InterfaceA a1(1);
+	InterfaceB b1(2);
 
-TEST(InterfaceA, BasicFunctionality) {
-    InterfaceA a;
-    ProgramApp app1(a);
-    app1.run();
-}
+	// Act
+	ProgramApp app(a1, b1);
 
-class InterfaceB {
-public:
-    void BasicFunctionality() const { std::cout << "InterfaceB BasicFunctionality called."; }
-};
-
-TEST(InterfaceB, BasicFunctionality) {
-    InterfaceB b;
-    ProgramApp app2(b);
-    app2.run();
+	// Assert
+	app.run();
 }

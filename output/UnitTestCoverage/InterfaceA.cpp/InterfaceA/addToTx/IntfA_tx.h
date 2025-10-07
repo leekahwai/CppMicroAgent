@@ -7,23 +7,23 @@
 
 class InterfaceA {
 public:
-    InterfaceA();
-    ~InterfaceA();
-    InterfaceA(const InterfaceA&);
-    InterfaceA operator=(const InterfaceA&);
+	InterfaceA();
+	~InterfaceA();
+	InterfaceA(const InterfaceA&);
+	InterfaceA operator=(const InterfaceA&);
 
-    void addToTx(structA& data);
-    void addToRx(structA& data);
+	void addToTx(structA& data);
+	void addToRx(structA& data);
 
-    bool init();
-    void close();
-
-    int getTxStats();
-    int getRxStats();
+	bool init();
+	void close();
+	int getTxStats();
+	int getRxStats();
 
 private:
-    IntfA_Tx intfTx;
-    IntfA_Rx intfRx;
+	IntfA_Tx intfTx;
+	IntfA_Rx intfRx;
+
 };
 
 #endif

@@ -1,4 +1,4 @@
-from flow_manager import flow
+from ..flow_manager import flow
 import os
 import re
 

@@ -1,10 +1,10 @@
 import os
 import subprocess
 import tempfile
-from flow_manager import flow
-from ConfigReader import ConfigReader
-from OllamaClient import OllamaClient
-from CodeWriter import CodeWriter
+from ..flow_manager import flow
+from ..ConfigReader import ConfigReader
+from ..OllamaClient import OllamaClient
+from ..CodeWriter import CodeWriter
 import json
 
 class StateGenerateUnitTests():

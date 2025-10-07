@@ -1,8 +1,8 @@
 import os
 import platform
 
-from ConfigReader import ConfigReader
-from flow_manager import flow
+from ..ConfigReader import ConfigReader
+from ..flow_manager import flow
 
 
 class StateInit():

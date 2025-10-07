@@ -1,7 +1,7 @@
 import os
 import shutil
 import datetime
-from ConfigReader import ConfigReader
+from .ConfigReader import ConfigReader
 
 class OutputManager:
     """Manages output directory operations including cleanup and organization"""

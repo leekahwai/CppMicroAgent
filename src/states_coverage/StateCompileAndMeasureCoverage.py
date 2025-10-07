@@ -2,8 +2,8 @@ import os
 import subprocess
 import tempfile
 import shutil
-from flow_manager import flow
-from ConfigReader import ConfigReader
+from ..flow_manager import flow
+from ..ConfigReader import ConfigReader
 
 class StateCompileAndMeasureCoverage():
     def __init__(self):
