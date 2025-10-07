@@ -15,8 +15,8 @@ Core Modules:
 - flow_manager: Workflow orchestration and management
 
 Sub-packages:
-- states_coverage: Advanced coverage improvement state machines and workflows
-- state_coverage: Direct test generation and analysis scripts
+- advanced_coverage_workflow: Advanced coverage improvement state machines and workflows
+- quick_test_generator: Direct test generation and analysis scripts
 
 Main Entry Point:
 - Use quick_start.sh for interactive access to all features

@@ -77,7 +77,7 @@ This option generates comprehensive unit tests for your C++ project using AI-enh
 │                    OPTION 1: GENERATE UNIT TESTS                │
 └─────────────────────────────────────────────────────────────────┘
 
-Script: src/state_coverage/generate_and_build_tests.py
+Script: src/quick_test_generator/generate_and_build_tests.py
 
 PHASE 1: PROJECT ANALYSIS
 ─────────────────────────
@@ -362,10 +362,10 @@ CppMicroAgent/
 ├── CppMicroAgent.cfg       # Configuration file
 ├── README.md               # This file
 ├── src/                    # Core modules
-│   ├── state_coverage/     # Test generation scripts
-│   │   └── generate_and_build_tests.py  # Option 1 script
+│   ├── quick_test_generator/  # Test generation scripts (Option 1)
+│   │   └── generate_and_build_tests.py  # Quick test generator
 │   ├── run_coverage_analysis.py         # Option 2 script
-│   ├── states_coverage/    # Coverage analysis state machine
+│   ├── advanced_coverage_workflow/  # State machine workflows (advanced)
 │   ├── ConfigReader.py     # Configuration management
 │   ├── OllamaClient.py     # LLM integration
 │   └── ...                 # Other core modules
@@ -399,7 +399,7 @@ open output/UnitTestCoverage/lcov_html/index.html
 ### Example 2: Advanced - Analyze Your Own Project
 ```bash
 # Step 1: Edit the test generation script to point to your project
-nano src/state_coverage/generate_and_build_tests.py
+nano src/quick_test_generator/generate_and_build_tests.py
 # Update project_root path (line ~1035)
 
 # Step 2: Run through quick_start.sh
@@ -409,7 +409,7 @@ nano src/state_coverage/generate_and_build_tests.py
 ### Example 3: Direct Python Script Usage
 ```bash
 # Run Option 1 directly
-python3 src/state_coverage/generate_and_build_tests.py
+python3 src/quick_test_generator/generate_and_build_tests.py
 
 # Run Option 2 directly
 python3 src/run_coverage_analysis.py
@@ -447,7 +447,7 @@ Open `output/UnitTestCoverage/lcov_html/index.html` in a browser to see:
 ### Quick Start Configuration
 The quick_start.sh script uses sensible defaults and requires minimal configuration. However, you can customize:
 
-**Project Location**: Edit `src/state_coverage/generate_and_build_tests.py` (line ~1035)
+**Project Location**: Edit `src/quick_test_generator/generate_and_build_tests.py` (line ~1035)
 ```python
 project_root = Path("/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp")
 ```
@@ -543,7 +543,7 @@ A successful run through quick_start.sh will produce:
 ./quick_start.sh              # Interactive menu (RECOMMENDED)
 
 # Direct script execution (advanced)
-python3 src/state_coverage/generate_and_build_tests.py   # Option 1
+python3 src/quick_test_generator/generate_and_build_tests.py   # Option 1
 python3 src/run_coverage_analysis.py                     # Option 2
 ```
 

@@ -477,7 +477,7 @@ add_test(NAME unit_tests COMMAND run_tests)
         print(f"[StateAdvancedCoverageImprovement] Regenerating tests with enhanced coverage focus...")
         
         # Import here to avoid circular dependency
-        from states_coverage.StateGenerateUnitTests import StateGenerateUnitTests
+        from advanced_coverage_workflow.StateGenerateUnitTests import StateGenerateUnitTests
         
         # Enhance coverage data with specific gap information
         enhanced_coverage_data = coverage_data.copy()

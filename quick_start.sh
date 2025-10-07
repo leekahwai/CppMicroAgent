@@ -119,7 +119,7 @@ case $choice in
         echo ""
         
         # Run test generation with error handling
-        if python3 src/state_coverage/generate_and_build_tests.py; then
+        if python3 src/quick_test_generator/generate_and_build_tests.py; then
             echo ""
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             echo "✅ Test Generation Complete!"
@@ -156,7 +156,7 @@ case $choice in
             echo "💡 Troubleshooting tips:"
             echo "   1. Check if googletest is built: ls googletest-1.16.0/build/lib/"
             echo "   2. Ensure source files exist: ls TestProjects/SampleApplication/SampleApp/src/"
-            echo "   3. Try running with debug: python3 -u src/state_coverage/generate_and_build_tests.py"
+            echo "   3. Try running with debug: python3 -u src/quick_test_generator/generate_and_build_tests.py"
             exit 1
         fi
         ;;

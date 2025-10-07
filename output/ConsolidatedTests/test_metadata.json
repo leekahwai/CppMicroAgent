@@ -1,0 +1,177 @@
+[
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceB_addToTx.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceB/InterfaceB.cpp",
+    "test_name": "InterfaceB_addToTx",
+    "class_name": "InterfaceB",
+    "method_name": "addToTx"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceB_addToRx.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceB/InterfaceB.cpp",
+    "test_name": "InterfaceB_addToRx",
+    "class_name": "InterfaceB",
+    "method_name": "addToRx"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceB_init.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceB/InterfaceB.cpp",
+    "test_name": "InterfaceB_init",
+    "class_name": "InterfaceB",
+    "method_name": "init"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceB_close.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceB/InterfaceB.cpp",
+    "test_name": "InterfaceB_close",
+    "class_name": "InterfaceB",
+    "method_name": "close"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceB_getTxStats.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceB/InterfaceB.cpp",
+    "test_name": "InterfaceB_getTxStats",
+    "class_name": "InterfaceB",
+    "method_name": "getTxStats"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceB_getRxStats.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceB/InterfaceB.cpp",
+    "test_name": "InterfaceB_getRxStats",
+    "class_name": "InterfaceB",
+    "method_name": "getRxStats"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_rx_addToQueue.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceB/IntfB_rx.cpp",
+    "test_name": "IntfB_rx_addToQueue",
+    "class_name": "IntfB_Rx",
+    "method_name": "addToQueue"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_rx_init.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceB/IntfB_rx.cpp",
+    "test_name": "IntfB_rx_init",
+    "class_name": "IntfB_Rx",
+    "method_name": "init"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_rx_close.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceB/IntfB_rx.cpp",
+    "test_name": "IntfB_rx_close",
+    "class_name": "IntfB_Rx",
+    "method_name": "close"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_tx_init.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceB/IntfB_tx.cpp",
+    "test_name": "IntfB_tx_init",
+    "class_name": "IntfB_Tx",
+    "method_name": "init"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_tx_close.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceB/IntfB_tx.cpp",
+    "test_name": "IntfB_tx_close",
+    "class_name": "IntfB_Tx",
+    "method_name": "close"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/ProgramApp_ProgramApp.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/ProgramApp/ProgramApp.cpp",
+    "test_name": "ProgramApp_ProgramApp",
+    "class_name": "ProgramApp",
+    "method_name": "ProgramApp"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/ProgramApp_run.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/ProgramApp/ProgramApp.cpp",
+    "test_name": "ProgramApp_run",
+    "class_name": "ProgramApp",
+    "method_name": "run"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceA_addToTx.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceA/InterfaceA.cpp",
+    "test_name": "InterfaceA_addToTx",
+    "class_name": "InterfaceA",
+    "method_name": "addToTx"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceA_addToRx.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceA/InterfaceA.cpp",
+    "test_name": "InterfaceA_addToRx",
+    "class_name": "InterfaceA",
+    "method_name": "addToRx"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceA_init.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceA/InterfaceA.cpp",
+    "test_name": "InterfaceA_init",
+    "class_name": "InterfaceA",
+    "method_name": "init"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceA_close.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceA/InterfaceA.cpp",
+    "test_name": "InterfaceA_close",
+    "class_name": "InterfaceA",
+    "method_name": "close"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceA_getTxStats.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceA/InterfaceA.cpp",
+    "test_name": "InterfaceA_getTxStats",
+    "class_name": "InterfaceA",
+    "method_name": "getTxStats"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceA_getRxStats.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceA/InterfaceA.cpp",
+    "test_name": "InterfaceA_getRxStats",
+    "class_name": "InterfaceA",
+    "method_name": "getRxStats"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfA_tx_init.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceA/IntfA_tx.cpp",
+    "test_name": "IntfA_tx_init",
+    "class_name": "IntfA_Tx",
+    "method_name": "init"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfA_tx_close.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceA/IntfA_tx.cpp",
+    "test_name": "IntfA_tx_close",
+    "class_name": "IntfA_Tx",
+    "method_name": "close"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfA_rx_addToQueue.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceA/IntfA_rx.cpp",
+    "test_name": "IntfA_rx_addToQueue",
+    "class_name": "IntfA_Rx",
+    "method_name": "addToQueue"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfA_rx_init.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceA/IntfA_rx.cpp",
+    "test_name": "IntfA_rx_init",
+    "class_name": "IntfA_Rx",
+    "method_name": "init"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfA_rx_close.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/InterfaceA/IntfA_rx.cpp",
+    "test_name": "IntfA_rx_close",
+    "class_name": "IntfA_Rx",
+    "method_name": "close"
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/Program_run.cpp",
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp/src/Program/Program.cpp",
+    "test_name": "Program_run",
+    "class_name": "Program",
+    "method_name": "run"
+  }
+]

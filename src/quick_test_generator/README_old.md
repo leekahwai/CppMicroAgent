@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is the new consolidated approach for generating unit tests with comprehensive boundary and condition testing. It replaces the old `states_coverage` approach (now renamed to `states_coverage_old`).
+This is the new consolidated approach for generating unit tests with comprehensive boundary and condition testing. It replaces the old `advanced_coverage_workflow` approach (now renamed to `advanced_coverage_workflow_old`).
 
 ## Key Features
 
@@ -122,7 +122,7 @@ cd /workspaces/CppMicroAgent/output/ConsolidatedTests/build
 │   ├── state_coverage/              # New approach
 │   │   ├── generate_consolidated_tests.py
 │   │   └── README.md (this file)
-│   └── states_coverage_old/         # Old approach (renamed)
+│   └── advanced_coverage_workflow_old/         # Old approach (renamed)
 └── output/
     └── ConsolidatedTests/
         ├── mocks/                   # Consolidated mock headers
@@ -282,7 +282,7 @@ Current generation results:
 
 ## Advantages Over Old Approach
 
-### Old Approach (states_coverage)
+### Old Approach (advanced_coverage_workflow)
 - ❌ Created folder per method
 - ❌ Duplicated mock headers everywhere
 - ❌ Difficult to maintain
