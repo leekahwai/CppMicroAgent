@@ -7,13 +7,14 @@ This script:
 3. Generates unit tests as <filename>_<method>.cpp with boundary and condition tests
 4. Compiles tests directly using g++ (NO CMAKE!)
 5. Runs tests and reports results
-6. Uses Ollama AI to improve test generation logic
+6. Uses Ollama AI to improve test generation logic (optional, with --use-ollama flag)
 """
 
 import os
 import re
 import json
 import subprocess
+import argparse
 from pathlib import Path
 from typing import List, Dict, Set, Tuple
 import glob
@@ -284,20 +285,26 @@ class MockGenerator:
 class UnitTestGenerator:
     """Generates unit tests for methods"""
     
-    def __init__(self, output_dir: Path, mock_dir: Path, source_root: Path):
+    def __init__(self, output_dir: Path, mock_dir: Path, source_root: Path, use_ollama: bool = False):
         self.output_dir = output_dir
         self.mock_dir = mock_dir
         self.source_root = source_root
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.test_metadata = []
         
-        # Check if Ollama is available at initialization
-        self.ollama_available = is_ollama_available()
-        if self.ollama_available:
-            print("  🤖 Ollama detected - will use AI-enhanced test generation")
+        # Only check and use Ollama if explicitly requested
+        self.ollama_available = False
+        self.use_ollama = False
+        
+        if use_ollama:
+            self.ollama_available = is_ollama_available()
+            if self.ollama_available:
+                print("  🤖 Ollama enabled - will use AI-enhanced test generation")
+                self.use_ollama = True
+            else:
+                print("  ⚠️  Ollama requested but not available - falling back to template-based generation")
         else:
-            print("  📝 Using template-based test generation (Ollama not available)")
-        self.use_ollama = self.ollama_available
+            print("  📝 Using template-based test generation")
     
     def _has_init_method(self, class_info: Dict) -> bool:
         """Check if class has an init method"""
@@ -317,7 +324,7 @@ class UnitTestGenerator:
                                        method: Dict, has_init: bool, has_close: bool) -> str:
         """Use Ollama to generate improved test logic"""
         
-        prompt = f"""Generate a simple C++ GoogleTest unit test for method '{method_name}' in class '{class_name}'.
+        prompt = f"""Generate a simple C++ GoogleTest unit test for method '{method_name}' in class '{class_name}'. Avoid using static invocation and create an object instead. 
 
 Method signature: {method['return_type']} {method_name}()
 Class has init(): {has_init}
@@ -334,8 +341,43 @@ Respond with ONLY the test code, starting with TEST_F. No explanations."""
         
         response = call_ollama(prompt)
         
-        # Basic validation - if Ollama response looks good, use it
-        if response and "TEST_F" in response and "{" in response:
+        if not response:
+            return ""
+        
+        # Strip markdown code fences if present
+        # Remove ```cpp or ```c++ at the beginning
+        response = re.sub(r'^```(?:cpp|c\+\+)?\s*\n?', '', response, flags=re.MULTILINE)
+        # Remove ``` at the end
+        response = re.sub(r'\n?```\s*$', '', response, flags=re.MULTILINE)
+        
+        # Extract only the TEST_F function by finding matching braces
+        test_f_match = re.search(r'TEST_F\s*\([^)]+\)\s*\{', response)
+        if not test_f_match:
+            return ""
+        
+        # Find the complete TEST_F function with balanced braces
+        start_pos = test_f_match.start()
+        brace_count = 0
+        in_test = False
+        end_pos = start_pos
+        
+        for i in range(start_pos, len(response)):
+            char = response[i]
+            if char == '{':
+                brace_count += 1
+                in_test = True
+            elif char == '}':
+                brace_count -= 1
+                if in_test and brace_count == 0:
+                    end_pos = i + 1
+                    break
+        
+        if end_pos > start_pos:
+            extracted = response[start_pos:end_pos]
+            return extracted
+        
+        # Fallback: use the whole response if extraction fails but it looks valid
+        if "TEST_F" in response and "{" in response and "}" in response:
             return response
         
         return ""  # Return empty if Ollama fails
@@ -949,6 +991,7 @@ class TestBuilder:
         cmd = [
             'g++',
             '-std=c++14',  # GoogleTest 1.16.0 requires C++14
+            '--coverage',  # Enable coverage instrumentation (equivalent to -fprofile-arcs -ftest-coverage)
             '-o', str(output_binary),
             test_file,
         ]
@@ -966,6 +1009,7 @@ class TestBuilder:
             '-lgtest',
             '-lgtest_main',
             '-lpthread',
+            '-lgcov',  # Link with gcov library for coverage
         ])
         
         print(f"  Compiling {test_name}...", end=' ')
@@ -1100,6 +1144,15 @@ class TestBuilder:
 
 def main():
     """Main execution function"""
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Generate and build unit tests for C++ code',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument('--use-ollama', action='store_true',
+                        help='Use Ollama AI for enhanced test generation')
+    args = parser.parse_args()
+    
     print("="*70)
     print("Consolidated Mock & Unit Test Generator (Python + g++ Direct)")
     print("="*70)
@@ -1118,7 +1171,7 @@ def main():
     # Initialize components
     analyzer = HeaderAnalyzer(project_root)
     mock_gen = MockGenerator(mock_dir)
-    test_gen = UnitTestGenerator(test_dir, mock_dir, project_root)
+    test_gen = UnitTestGenerator(test_dir, mock_dir, project_root, use_ollama=args.use_ollama)
     
     # Step 1: Find all headers
     print("Step 1: Analyzing headers...")

@@ -6,6 +6,22 @@ echo "║           C++ Micro Agent - Quick Start                         ║"
 echo "╚══════════════════════════════════════════════════════════════════╝"
 echo ""
 
+# Parse command line arguments
+USE_OLLAMA=0
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --ollama)
+            USE_OLLAMA=1
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: $0 [--ollama]"
+            exit 1
+            ;;
+    esac
+done
+
 # Function to check if command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
@@ -70,12 +86,23 @@ else
     echo "✅ g++ found"
 fi
 
-if ! command_exists ollama; then
-    echo "⚠️  ollama not found (optional but recommended for better test generation)"
-    echo "   Install with: curl -fsSL https://ollama.com/install.sh | sh"
+if [ $USE_OLLAMA -eq 1 ]; then
+    if ! command_exists ollama; then
+        echo "❌ ollama not found but --ollama flag was specified"
+        echo "   Install with: curl -fsSL https://ollama.com/install.sh | sh"
+        MISSING=1
+    else
+        echo "✅ ollama found"
+        if ! check_ollama_models; then
+            MISSING=1
+        fi
+    fi
 else
-    echo "✅ ollama found"
-    check_ollama_models
+    if ! command_exists ollama; then
+        echo "ℹ️  ollama not found (use --ollama flag to enable AI-enhanced test generation)"
+    else
+        echo "ℹ️  ollama found but not being used (use --ollama flag to enable)"
+    fi
 fi
 
 # Check for lcov (needed for coverage)
@@ -108,18 +135,30 @@ case $choice in
         echo "Starting Test Generation..."
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         
-        # Ensure Ollama is running for better test generation
-        OLLAMA_AVAILABLE=0
-        if ensure_ollama_running && check_ollama_models; then
-            OLLAMA_AVAILABLE=1
-            echo "🤖 Using Ollama AI for enhanced test generation"
+        # Use Ollama only if --ollama flag was specified
+        if [ $USE_OLLAMA -eq 1 ]; then
+            OLLAMA_AVAILABLE=0
+            if ensure_ollama_running && check_ollama_models; then
+                OLLAMA_AVAILABLE=1
+                echo "🤖 Using Ollama AI for enhanced test generation"
+            else
+                echo "❌ Ollama specified but not available"
+                exit 1
+            fi
         else
-            echo "ℹ️  Running without Ollama (basic test generation)"
+            echo "ℹ️  Using Python-based test generation (use --ollama flag for AI-enhanced generation)"
         fi
         echo ""
         
         # Run test generation with error handling
-        if python3 src/quick_test_generator/generate_and_build_tests.py; then
+        # Pass --use-ollama flag to Python script if ollama is enabled
+        if [ $USE_OLLAMA -eq 1 ]; then
+            PYTHON_CMD="python3 src/quick_test_generator/generate_and_build_tests.py --use-ollama"
+        else
+            PYTHON_CMD="python3 src/quick_test_generator/generate_and_build_tests.py"
+        fi
+        
+        if $PYTHON_CMD; then
             echo ""
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             echo "✅ Test Generation Complete!"

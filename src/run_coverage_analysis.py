@@ -107,32 +107,67 @@ def generate_coverage_report():
     coverage_dir = "output/UnitTestCoverage"
     os.makedirs(coverage_dir, exist_ok=True)
     
-    # Initialize lcov
+    # Initialize lcov with error handling for common issues
     try:
-        subprocess.run([
+        result = subprocess.run([
             'lcov', '--capture',
             '--directory', 'output/ConsolidatedTests',
-            '--output-file', os.path.join(coverage_dir, 'coverage.info')
-        ], check=True, capture_output=True)
+            '--output-file', os.path.join(coverage_dir, 'coverage.info'),
+            '--ignore-errors', 'mismatch',  # Ignore line mismatch errors
+            '--ignore-errors', 'source',     # Ignore missing source files
+            '--rc', 'geninfo_unexecuted_blocks=1'  # Set unexecuted blocks to zero
+        ], capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            print(f"⚠️  lcov had issues: {result.stderr[:200]}")
+            print("Attempting to continue with partial coverage data...")
+        
+        # Check if coverage.info was created and has content
+        coverage_file = os.path.join(coverage_dir, 'coverage.info')
+        if not os.path.exists(coverage_file) or os.path.getsize(coverage_file) == 0:
+            print(f"❌ No coverage data was collected.")
+            print("   Make sure tests were compiled with --coverage flag and executed.")
+            return False
         
         # Generate HTML report
         html_dir = os.path.join(coverage_dir, 'lcov_html')
-        subprocess.run([
+        result = subprocess.run([
             'genhtml',
-            os.path.join(coverage_dir, 'coverage.info'),
-            '--output-directory', html_dir
-        ], check=True, capture_output=True)
+            coverage_file,
+            '--output-directory', html_dir,
+            '--ignore-errors', 'source'  # Ignore missing source files in HTML generation
+        ], capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            print(f"⚠️  genhtml had issues: {result.stderr[:200]}")
         
         print(f"✅ Coverage report generated:")
         print(f"   HTML: {html_dir}/index.html")
-        print(f"   Data: {coverage_dir}/coverage.info")
+        print(f"   Data: {coverage_file}")
+        
+        # Display coverage summary if available
+        try:
+            summary_result = subprocess.run([
+                'lcov', '--summary', coverage_file
+            ], capture_output=True, text=True)
+            if summary_result.returncode == 0:
+                print("\n📈 Coverage Summary:")
+                for line in summary_result.stdout.split('\n'):
+                    if 'lines' in line or 'functions' in line:
+                        print(f"   {line.strip()}")
+        except:
+            pass
+        
         return True
         
     except subprocess.CalledProcessError as e:
         print(f"⚠️  Coverage report generation had issues: {e}")
         print("This is normal if tests weren't compiled with coverage flags.")
         print("The tests still ran successfully.")
-        return True
+        return False
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
+        return False
 
 def main():
     print("╔══════════════════════════════════════════════════════════════════╗")

@@ -28,7 +28,7 @@ def call_ollama(prompt: str, model: str = "qwen2.5:0.5b") -> str:
 def analyze_test_failure(test_name: str, test_code: str, class_name: str, method_name: str) -> str:
     """Use Ollama to analyze why a test might be failing"""
     
-    prompt = f"""Analyze this C++ unit test that is crashing at runtime.
+    prompt = f"""Analyze this C++ unit test that is crashing at runtime. Avoid using static member invocation and declare object instance instead. 
 
 Test Name: {test_name}
 Class: {class_name}
