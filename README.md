@@ -27,14 +27,19 @@ pip install requests ollama
 - **Visual Studio 2022**: Community or Professional with C++ development tools
 - **MinGW**: For GCC compilation (included in project)
 
-### Ollama Setup (Optional but Recommended):
+### Ollama Setup (Optional - Auto-Triggers When Available):
 ```bash
-# Install Ollama
+# Install Ollama for AI-enhanced test generation
 curl -fsSL https://ollama.com/install.sh | sh
 
-# Download recommended models
-ollama pull qwen2.5:0.5b        # For enhanced test generation
-ollama pull llama3.2:latest     # For unit test generation
+# Download recommended model
+ollama pull qwen2.5:0.5b        # Small, fast, recommended
+
+# Alternative models
+ollama pull llama3.2:latest     # Larger, higher quality
+
+# That's it! Ollama will auto-trigger when you run Option 1
+# No configuration needed - automatic detection and usage
 ```
 
 ## 🚀 Quick Start
@@ -60,6 +65,8 @@ This interactive menu provides:
 
 # Step 2: Select Option 1 to generate unit tests
 # The script will analyze your C++ code and generate tests
+# 🤖 If Ollama is installed, AI-enhanced tests are generated automatically!
+# 📝 Without Ollama, reliable template-based tests are used
 
 # Step 3: Select Option 2 to run coverage analysis
 # This analyzes the generated tests and produces coverage reports
@@ -67,6 +74,21 @@ This interactive menu provides:
 # Step 4: View the HTML coverage report
 open output/UnitTestCoverage/lcov_html/index.html
 ```
+
+### 🤖 AI-Enhanced Test Generation (Automatic)
+**NEW**: Ollama integration now auto-triggers when available!
+
+- **With Ollama**: Tests are generated using AI that understands your code context
+  - Smarter test logic with proper init/close handling
+  - Better thread safety and edge case coverage
+  - Context-aware assertions and error messages
+  
+- **Without Ollama**: Reliable template-based tests (works perfectly fine)
+  - Proven test generation approach
+  - Fast and consistent results
+  - No external dependencies
+
+**No configuration needed** - the system automatically detects and uses Ollama if available!
 
 ## 📊 Option 1: Generate Unit Tests - Process Flow
 
@@ -114,17 +136,29 @@ PHASE 2: MOCK GENERATION
 PHASE 3: TEST GENERATION (AI-ENHANCED)
 ──────────────────────────────────────
 ┌──────────────────┐
-│ 5. Ollama Check  │ → Check if Ollama is available
-│    (Optional)    │   - Model: qwen2.5:0.5b (preferred)
-└────────┬─────────┘   - Fallback to template-based generation
-         │
+│ 5. Ollama Check  │ → Automatically detects if Ollama is available
+│  (Automatic)     │   - If available: Uses AI-enhanced generation
+└────────┬─────────┘   - If not: Falls back to template-based
+         │             - No configuration needed!
          ↓
 ┌──────────────────┐
 │ 6. Generate Unit │ → For each method in each class:
 │    Tests         │   
 └────────┬─────────┘   CREATE: <filename>_<method>.cpp
          │             
-         │             Test Types Based on Return Type:
+         │             Generation Modes:
+         │             ┌─────────────────────────────────┐
+         │             │ WITH Ollama (Auto-triggered):   │
+         │             │   🤖 AI analyzes method context │
+         │             │   🤖 Generates smart test logic │
+         │             │   🤖 Understands init/close     │
+         │             │   🤖 Handles threading issues   │
+         │             │                                 │
+         │             │ WITHOUT Ollama (Fallback):      │
+         │             │   📝 Template-based tests       │
+         │             │   📝 Reliable and proven        │
+         │             │   📝 Works perfectly fine       │
+         │             └─────────────────────────────────┘
          │             ┌─────────────────────────────────┐
          │             │ bool    → True/False scenarios  │
          │             │ int     → Boundary value tests  │
@@ -471,11 +505,13 @@ self.gtest_root = Path("/workspaces/CppMicroAgent/googletest-1.16.0")
    - Install missing tools: `sudo apt-get install g++ lcov gcov`
    - Python 3 required: `sudo apt-get install python3`
 
-2. **"Ollama not found" (Optional Warning)**
-   - Ollama enhances test generation but is not required
-   - Basic test generation works without Ollama
+2. **"Ollama not found" (Optional Enhancement)**
+   - Ollama **automatically enhances** test generation when available
+   - Tests work perfectly fine without Ollama (template-based)
+   - **NEW**: Ollama now auto-triggers - no configuration needed!
    - To install: `curl -fsSL https://ollama.com/install.sh | sh`
    - To get models: `ollama pull qwen2.5:0.5b`
+   - Just run quick_start.sh - it will detect and use Ollama automatically
 
 3. **"No tests found" when running Option 2**
    - You must run Option 1 first to generate tests
