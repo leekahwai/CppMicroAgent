@@ -52,27 +52,32 @@ def generate_comprehensive_test(class_name: str, method_name: str, return_type: 
     # Build parameter declarations and calls
     param_setup = ""
     param_call = ""
+    needs_common = False
     
     if params:
         for param_type, param_name in params:
             if 'structA' in param_type:
+                needs_common = True
                 param_setup = """    structA data;
     data.a1 = 1.0f;
     data.a2 = 1;"""
                 param_call = "data"
             elif 'structB' in param_type:
+                needs_common = True
                 param_setup = """    structB data;
     data.b1 = 1.0f;
     data.b2 = 1;"""
                 param_call = "data"
+    
+    # Only include common.h if needed
+    common_include = '#include "common.h"\n' if needs_common else ''
     
     test_content = f"""// Targeted test for {class_name}::{method_name}
 #include <gtest/gtest.h>
 #include <climits>
 #include <thread>
 #include <chrono>
-#include "common.h"
-#include "{class_name}.h"
+{common_include}#include "{class_name}.h"
 
 // Test fixture
 class {class_name}_{method_name}_TargetedTest : public ::testing::Test {{

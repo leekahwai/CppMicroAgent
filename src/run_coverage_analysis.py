@@ -69,7 +69,7 @@ def run_tests_with_coverage():
     for file in os.listdir(bin_dir):
         file_path = os.path.join(bin_dir, file)
         if os.path.isfile(file_path) and os.access(file_path, os.X_OK):
-            test_executables.append(file_path)
+            test_executables.append(file)  # Just store the filename, not full path
     
     if not test_executables:
         print("❌ No executable tests found")
@@ -77,13 +77,26 @@ def run_tests_with_coverage():
     
     print(f"Found {len(test_executables)} test executables")
     
-    # Run each test
+    # Clean up old coverage data to ensure fresh results
+    import glob
+    for gcda_file in glob.glob(os.path.join(bin_dir, '*.gcda')):
+        try:
+            os.remove(gcda_file)
+        except:
+            pass
+    
+    # Run each test from the bin directory so .gcda files are created in the right place
     passed = 0
     failed = 0
-    for test in test_executables:
-        test_name = os.path.basename(test)
+    for test_name in test_executables:
         try:
-            result = subprocess.run([test], capture_output=True, timeout=10)
+            # Run the test from within the bin directory
+            result = subprocess.run(
+                ['./' + test_name],
+                capture_output=True,
+                timeout=10,
+                cwd=bin_dir  # Critical: run from bin directory
+            )
             if result.returncode == 0:
                 passed += 1
                 print(f"  ✅ {test_name}")
@@ -107,14 +120,18 @@ def generate_coverage_report():
     coverage_dir = "output/UnitTestCoverage"
     os.makedirs(coverage_dir, exist_ok=True)
     
+    # Point to the bin directory where .gcda files are located
+    bin_dir = "output/ConsolidatedTests/bin"
+    
     # Initialize lcov with error handling for common issues
     try:
         result = subprocess.run([
             'lcov', '--capture',
-            '--directory', 'output/ConsolidatedTests',
+            '--directory', bin_dir,  # Changed: look in bin directory where .gcda files are
             '--output-file', os.path.join(coverage_dir, 'coverage.info'),
             '--ignore-errors', 'mismatch',  # Ignore line mismatch errors
             '--ignore-errors', 'source',     # Ignore missing source files
+            '--ignore-errors', 'gcov',       # Ignore gcov errors
             '--rc', 'geninfo_unexecuted_blocks=1'  # Set unexecuted blocks to zero
         ], capture_output=True, text=True)
         

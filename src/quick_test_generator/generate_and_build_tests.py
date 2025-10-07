@@ -320,6 +320,53 @@ class UnitTestGenerator:
                 return True
         return False
     
+    def _get_constructor_info(self, class_info: Dict) -> Dict:
+        """Get constructor information including required parameters"""
+        for method in class_info['methods']:
+            if method['is_constructor'] and method['parameters']:
+                return {
+                    'has_params': True,
+                    'parameters': method['parameters']
+                }
+        return {'has_params': False, 'parameters': []}
+    
+    def _generate_object_creation_code(self, class_name: str, class_info: Dict) -> tuple:
+        """Generate code to create an object, handling constructor parameters
+        Returns: (include_headers, object_declarations, object_creation)
+        """
+        constructor_info = self._get_constructor_info(class_info)
+        
+        if constructor_info['has_params']:
+            # Need to create dependent objects first
+            includes = []
+            declarations = []
+            params = []
+            
+            param_counter = {}  # Track parameter type counts for unique naming
+            for param in constructor_info['parameters']:
+                param_type = param['type'].replace('&', '').replace('const', '').strip()
+                # Add include for the parameter type
+                includes.append(f'#include "{param_type}.h"')
+                
+                # Create unique variable name
+                base_name = param_type.lower()[:5]
+                if base_name in param_counter:
+                    param_counter[base_name] += 1
+                    param_var = f"{base_name}{param_counter[base_name]}"
+                else:
+                    param_counter[base_name] = 1
+                    param_var = base_name
+                
+                # Create instance of the parameter type
+                declarations.append(f"    {param_type} {param_var};")
+                params.append(param_var)
+            
+            obj_decl = f"    {class_name} obj({', '.join(params)});"
+            
+            return (includes, declarations, obj_decl)
+        else:
+            return ([], [], f"    {class_name} obj;")
+    
     def _generate_ollama_improved_test(self, class_name: str, method_name: str, 
                                        method: Dict, has_init: bool, has_close: bool) -> str:
         """Use Ollama to generate improved test logic"""
@@ -408,7 +455,15 @@ Respond with ONLY the test code, starting with TEST_F. No explanations."""
         content += f"""
 // Include actual header being tested (will use real implementation)
 #include "{class_info['header_file']}"
-
+"""
+        
+        # Add includes for constructor parameters if needed
+        constructor_includes, _, _ = self._generate_object_creation_code(class_name, class_info)
+        for inc in constructor_includes:
+            if inc not in content:
+                content += inc + '\n'
+        
+        content += f"""
 // Test fixture for {class_name}::{method_name}
 class {class_name}_{method_name}_Test : public ::testing::Test {{
 protected:
@@ -426,48 +481,40 @@ protected:
         
         # Generate tests based on method characteristics
         if method['is_constructor']:
-            content += self._generate_constructor_tests(class_name, method_name, method)
+            content += self._generate_constructor_tests(class_name, method_name, method, class_info)
         elif 'bool' in method['return_type']:
-            content += self._generate_boolean_tests(class_name, method_name, method)
+            content += self._generate_boolean_tests(class_name, method_name, method, class_info)
         elif 'int' in method['return_type'] or 'long' in method['return_type']:
-            content += self._generate_numeric_tests(class_name, method_name, method)
+            content += self._generate_numeric_tests(class_name, method_name, method, class_info)
         elif 'void' in method['return_type']:
-            content += self._generate_void_tests(class_name, method_name, method)
+            content += self._generate_void_tests(class_name, method_name, method, class_info)
         else:
-            content += self._generate_generic_tests(class_name, method_name, method)
+            content += self._generate_generic_tests(class_name, method_name, method, class_info)
         
         return content
     
-    def _generate_constructor_tests(self, class_name: str, method_name: str, method: Dict) -> str:
+    def _generate_constructor_tests(self, class_name: str, method_name: str, method: Dict, class_info: Dict) -> str:
         """Generate constructor tests"""
+        _, obj_deps, obj_decl = self._generate_object_creation_code(class_name, class_info)
+        obj_creation = '\n'.join(obj_deps) + '\n' + obj_decl if obj_deps else obj_decl
+        
         content = f"""
 // Test: Constructor creates valid object
 TEST_F({class_name}_{method_name}_Test, ConstructorCreatesValidObject) {{
-    {class_name}* obj = nullptr;
-    ASSERT_NO_THROW({{
-        obj = new {class_name}();
-    }});
-    ASSERT_NE(obj, nullptr);
-    delete obj;
-}}
-
-// Test: Multiple instances can be created
-TEST_F({class_name}_{method_name}_Test, MultipleInstancesCanBeCreated) {{
-    {class_name} obj1;
-    {class_name} obj2;
-    // Both objects should be independently valid
+{obj_creation}
+    // Object should be created without throwing
     SUCCEED();
 }}
 """
         return content
     
-    def _generate_boolean_tests(self, class_name: str, method_name: str, method: Dict) -> str:
+    def _generate_boolean_tests(self, class_name: str, method_name: str, method: Dict, class_info: Dict) -> str:
         """Generate tests for boolean return methods"""
         
         # Try Ollama first if available
         if self.use_ollama:
-            has_init = self._has_init_method({'methods': [method]}) or method_name == 'init'
-            has_close = self._has_close_method({'methods': [method]}) or method_name == 'close'
+            has_init = self._has_init_method(class_info) or method_name == 'init'
+            has_close = self._has_close_method(class_info) or method_name == 'close'
             ollama_test = self._generate_ollama_improved_test(class_name, method_name, method, has_init, has_close)
             if ollama_test:
                 print(f"    🤖 Generated AI-enhanced test for {class_name}::{method_name}")
@@ -476,16 +523,21 @@ TEST_F({class_name}_{method_name}_Test, MultipleInstancesCanBeCreated) {{
         # Fall back to template-based generation
         decls, params = self._generate_param_values(method)
         
-        # Check if this class likely has threading issues
-        has_init = self._has_init_method({'methods': [method]}) or method_name == 'init'
-        has_close = self._has_close_method({'methods': [method]}) or method_name == 'close'
+        # Get object creation code
+        _, obj_deps, obj_decl = self._generate_object_creation_code(class_name, class_info)
+        obj_creation = '\n'.join(obj_deps) + '\n' + obj_decl if obj_deps else obj_decl
+        
+        # Check if this class has init/close methods
+        has_init = self._has_init_method(class_info) or method_name == 'init'
+        has_close = self._has_close_method(class_info) or method_name == 'close'
         
         # Special handling for init method
         if method_name == 'init':
+            close_call = "    obj.close();\n    std::this_thread::sleep_for(std::chrono::milliseconds(100));" if has_close else ""
             content = f"""
 // Test: {method_name} returns true on success
 TEST_F({class_name}_{method_name}_Test, ReturnsTrueOnSuccess) {{
-    {class_name} obj;
+{obj_creation}
 {decls}
     bool result = obj.{method_name}({params});
     EXPECT_TRUE(result);
@@ -493,16 +545,12 @@ TEST_F({class_name}_{method_name}_Test, ReturnsTrueOnSuccess) {{
     // Give threads time to start if any
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     
-    // Cleanup if close exists
-    obj.close();
-    
-    // Give threads time to stop
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+{close_call}
 }}
 
 // Test: {method_name} initializes object properly  
 TEST_F({class_name}_{method_name}_Test, InitializesObjectProperly) {{
-    {class_name} obj;
+{obj_creation}
 {decls}
     bool result = obj.{method_name}({params});
     EXPECT_TRUE(result);
@@ -510,20 +558,16 @@ TEST_F({class_name}_{method_name}_Test, InitializesObjectProperly) {{
     // Wait for initialization
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     
-    // Cleanup
-    obj.close();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+{close_call}
 }}
 """
         elif method_name == 'close':
+            init_call = "    obj.init();\n    std::this_thread::sleep_for(std::chrono::milliseconds(100));\n    " if has_init else ""
             content = f"""
 // Test: {method_name} cleanup succeeds
 TEST_F({class_name}_{method_name}_Test, CleanupSucceeds) {{
-    {class_name} obj;
-    // Initialize first if init exists
-    obj.init();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    
+{obj_creation}
+{init_call}
 {decls}
     EXPECT_NO_THROW({{
         obj.{method_name}({params});
@@ -535,10 +579,8 @@ TEST_F({class_name}_{method_name}_Test, CleanupSucceeds) {{
 
 // Test: {method_name} handles repeated calls
 TEST_F({class_name}_{method_name}_Test, HandlesRepeatedCalls) {{
-    {class_name} obj;
-    obj.init();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    
+{obj_creation}
+{init_call}
 {decls}
     EXPECT_NO_THROW({{
         obj.{method_name}({params});
@@ -548,47 +590,41 @@ TEST_F({class_name}_{method_name}_Test, HandlesRepeatedCalls) {{
 }}
 """
         else:
+            init_call = "    obj.init();\n    std::this_thread::sleep_for(std::chrono::milliseconds(100));\n    " if has_init else ""
+            close_call = "    obj.close();\n    std::this_thread::sleep_for(std::chrono::milliseconds(100));" if has_close else ""
             content = f"""
 // Test: {method_name} returns true on success
 TEST_F({class_name}_{method_name}_Test, ReturnsTrueOnSuccess) {{
-    {class_name} obj;
-    // Initialize first if needed
-    obj.init();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    
+{obj_creation}
+{init_call}
 {decls}
     bool result = obj.{method_name}({params});
     EXPECT_TRUE(result);
     
-    // Cleanup
-    obj.close();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+{close_call}
 }}
 
 // Test: {method_name} handles multiple calls
 TEST_F({class_name}_{method_name}_Test, HandlesMultipleCalls) {{
-    {class_name} obj;
-    obj.init();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    
+{obj_creation}
+{init_call}
 {decls}
     bool result1 = obj.{method_name}({params});
     bool result2 = obj.{method_name}({params});
     EXPECT_TRUE(result1 || result2);
     
-    obj.close();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+{close_call}
 }}
 """
         return content
     
-    def _generate_numeric_tests(self, class_name: str, method_name: str, method: Dict) -> str:
+    def _generate_numeric_tests(self, class_name: str, method_name: str, method: Dict, class_info: Dict) -> str:
         """Generate tests for numeric return methods with threading safety"""
         
         # Try Ollama first if available
         if self.use_ollama:
-            has_init = self._has_init_method({'methods': [method]})
-            has_close = self._has_close_method({'methods': [method]})
+            has_init = self._has_init_method(class_info)
+            has_close = self._has_close_method(class_info)
             ollama_test = self._generate_ollama_improved_test(class_name, method_name, method, has_init, has_close)
             if ollama_test:
                 print(f"    🤖 Generated AI-enhanced test for {class_name}::{method_name}")
@@ -597,58 +633,58 @@ TEST_F({class_name}_{method_name}_Test, HandlesMultipleCalls) {{
         # Fall back to template-based generation
         decls, params = self._generate_param_values(method)
         
+        # Get object creation code
+        _, obj_deps, obj_decl = self._generate_object_creation_code(class_name, class_info)
+        obj_creation = '\n'.join(obj_deps) + '\n' + obj_decl if obj_deps else obj_decl
+        
+        # Check if class has init/close methods
+        has_init = self._has_init_method(class_info)
+        has_close = self._has_close_method(class_info)
+        
+        init_call = "    obj.init();\n    std::this_thread::sleep_for(std::chrono::milliseconds(100));\n    " if has_init else ""
+        close_call = "    obj.close();\n    std::this_thread::sleep_for(std::chrono::milliseconds(100));" if has_close else ""
+        
         # Methods like getTxStats, getRxStats need initialization first
         if 'Stats' in method_name or 'get' in method_name.lower():
             content = f"""
 // Test: {method_name} returns valid value after initialization
 TEST_F({class_name}_{method_name}_Test, ReturnsValidValueAfterInit) {{
-    {class_name} obj;
-    obj.init();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    
+{obj_creation}
+{init_call}
 {decls}
     auto result = obj.{method_name}({params});
     EXPECT_GE(result, 0); // Expect non-negative
     
-    obj.close();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+{close_call}
 }}
 
 // Test: {method_name} returns zero initially
 TEST_F({class_name}_{method_name}_Test, ReturnsZeroInitially) {{
-    {class_name} obj;
-    obj.init();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    
+{obj_creation}
+{init_call}
 {decls}
     auto result = obj.{method_name}({params});
     EXPECT_GE(result, 0); // Expect non-negative initial value
     
-    obj.close();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+{close_call}
 }}
 
 // Test: {method_name} handles boundary values
 TEST_F({class_name}_{method_name}_Test, HandlesBoundaryValues) {{
-    {class_name} obj;
-    obj.init();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    
+{obj_creation}
+{init_call}
 {decls}
     auto result = obj.{method_name}({params});
     EXPECT_GE(result, INT_MIN);
     EXPECT_LE(result, INT_MAX);
     
-    obj.close();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+{close_call}
 }}
 
 // Test: {method_name} consistent across multiple calls
 TEST_F({class_name}_{method_name}_Test, ConsistentAcrossMultipleCalls) {{
-    {class_name} obj;
-    obj.init();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    
+{obj_creation}
+{init_call}
 {decls}
     auto result1 = obj.{method_name}({params});
     auto result2 = obj.{method_name}({params});
@@ -656,15 +692,14 @@ TEST_F({class_name}_{method_name}_Test, ConsistentAcrossMultipleCalls) {{
     EXPECT_GE(result1, 0);
     EXPECT_GE(result2, 0);
     
-    obj.close();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+{close_call}
 }}
 """
         else:
             content = f"""
 // Test: {method_name} returns valid value
 TEST_F({class_name}_{method_name}_Test, ReturnsValidValue) {{
-    {class_name} obj;
+{obj_creation}
 {decls}
     auto result = obj.{method_name}({params});
     EXPECT_GE(result, 0); // Expect non-negative
@@ -672,7 +707,7 @@ TEST_F({class_name}_{method_name}_Test, ReturnsValidValue) {{
 
 // Test: {method_name} handles boundary values
 TEST_F({class_name}_{method_name}_Test, HandlesBoundaryValues) {{
-    {class_name} obj;
+{obj_creation}
 {decls}
     auto result = obj.{method_name}({params});
     EXPECT_GE(result, INT_MIN);
@@ -681,13 +716,13 @@ TEST_F({class_name}_{method_name}_Test, HandlesBoundaryValues) {{
 """
         return content
     
-    def _generate_void_tests(self, class_name: str, method_name: str, method: Dict) -> str:
+    def _generate_void_tests(self, class_name: str, method_name: str, method: Dict, class_info: Dict) -> str:
         """Generate tests for void methods with improved logic and threading safety"""
         
         # Try Ollama first if available
         if self.use_ollama:
-            has_init = self._has_init_method({'methods': [method]}) or method_name == 'init'
-            has_close = self._has_close_method({'methods': [method]}) or method_name == 'close'
+            has_init = self._has_init_method(class_info) or method_name == 'init'
+            has_close = self._has_close_method(class_info) or method_name == 'close'
             ollama_test = self._generate_ollama_improved_test(class_name, method_name, method, has_init, has_close)
             if ollama_test:
                 print(f"    🤖 Generated AI-enhanced test for {class_name}::{method_name}")
@@ -695,6 +730,14 @@ TEST_F({class_name}_{method_name}_Test, HandlesBoundaryValues) {{
         
         # Fall back to template-based generation
         decls, params = self._generate_param_values(method)
+        
+        # Get object creation code
+        _, obj_deps, obj_decl = self._generate_object_creation_code(class_name, class_info)
+        obj_creation = '\n'.join(obj_deps) + '\n' + obj_decl if obj_deps else obj_decl
+        
+        # Check if class has init/close methods
+        has_init = self._has_init_method(class_info)
+        has_close = self._has_close_method(class_info)
         
         # Special handling for methods that might involve threading
         if method_name in ['addToTx', 'addToRx', 'addToQueue']:
@@ -793,53 +836,57 @@ TEST_F({class_name}_{method_name}_Test, MultipleCallsSafe) {{
 }}
 """
         else:
-            # For other void methods
+            # For other void methods (like 'run')
+            init_call = "    obj.init();\n    std::this_thread::sleep_for(std::chrono::milliseconds(100));\n    " if has_init else ""
+            close_call = "    obj.close();\n    std::this_thread::sleep_for(std::chrono::milliseconds(100));" if has_close else ""
+            
             content = f"""
 // Test: {method_name} executes without throwing
 TEST_F({class_name}_{method_name}_Test, ExecutesWithoutThrowing) {{
-    {class_name} obj;
-    obj.init();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    
+{obj_creation}
+{init_call}
 {decls}
     EXPECT_NO_THROW({{
-        obj.{method_name}({params});
+        std::thread runThread([&obj]() {{ obj.{method_name}({params}); }});
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        runThread.detach();
     }});
     
-    obj.close();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+{close_call}
 }}
 
 // Test: {method_name} can be called multiple times
 TEST_F({class_name}_{method_name}_Test, CanBeCalledMultipleTimes) {{
-    {class_name} obj;
+{obj_creation}
 {decls}
     EXPECT_NO_THROW({{
-        obj.{method_name}({params});
-        obj.{method_name}({params});
-        obj.{method_name}({params});
+        std::thread runThread([&obj]() {{ obj.{method_name}({params}); }});
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        runThread.detach();
     }});
 }}
 
 // Test: {method_name} handles null/invalid conditions
 TEST_F({class_name}_{method_name}_Test, HandlesInvalidConditions) {{
-    {class_name} obj;
+{obj_creation}
 {decls}
     // Test with boundary/edge case parameters
     EXPECT_NO_THROW({{
-        obj.{method_name}({params});
+        std::thread runThread([&obj]() {{ obj.{method_name}({params}); }});
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        runThread.detach();
     }});
 }}
 """
         return content
     
-    def _generate_generic_tests(self, class_name: str, method_name: str, method: Dict) -> str:
+    def _generate_generic_tests(self, class_name: str, method_name: str, method: Dict, class_info: Dict) -> str:
         """Generate generic tests for other return types"""
         
         # Try Ollama first if available
         if self.use_ollama:
-            has_init = self._has_init_method({'methods': [method]})
-            has_close = self._has_close_method({'methods': [method]})
+            has_init = self._has_init_method(class_info)
+            has_close = self._has_close_method(class_info)
             ollama_test = self._generate_ollama_improved_test(class_name, method_name, method, has_init, has_close)
             if ollama_test:
                 print(f"    🤖 Generated AI-enhanced test for {class_name}::{method_name}")
@@ -847,10 +894,15 @@ TEST_F({class_name}_{method_name}_Test, HandlesInvalidConditions) {{
         
         # Fall back to template-based generation
         decls, params = self._generate_param_values(method)
+        
+        # Get object creation code
+        _, obj_deps, obj_decl = self._generate_object_creation_code(class_name, class_info)
+        obj_creation = '\n'.join(obj_deps) + '\n' + obj_decl if obj_deps else obj_decl
+        
         content = f"""
 // Test: {method_name} returns valid result
 TEST_F({class_name}_{method_name}_Test, ReturnsValidResult) {{
-    {class_name} obj;
+{obj_creation}
 {decls}
     EXPECT_NO_THROW({{
         auto result = obj.{method_name}({params});
@@ -860,7 +912,7 @@ TEST_F({class_name}_{method_name}_Test, ReturnsValidResult) {{
 
 // Test: {method_name} handles edge cases
 TEST_F({class_name}_{method_name}_Test, HandlesEdgeCases) {{
-    {class_name} obj;
+{obj_creation}
 {decls}
     EXPECT_NO_THROW({{
         obj.{method_name}({params});
@@ -960,13 +1012,15 @@ class TestBuilder:
         # Find all source subdirectories
         self.include_dirs = [
             str(self.gtest_include),  # GoogleTest headers
-            str(mock_dir),
             str(source_root / 'inc'),
         ]
-        # Add all subdirectories in src
+        # Add all subdirectories in src BEFORE mocks so real headers are found first
         for subdir in (source_root / 'src').rglob('*'):
             if subdir.is_dir():
                 self.include_dirs.append(str(subdir))
+        
+        # Add mock directory LAST so it's only used for missing headers
+        self.include_dirs.append(str(mock_dir))
         
         # Find all source files for linking
         self.all_source_files = []

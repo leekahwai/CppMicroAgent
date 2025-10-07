@@ -104,14 +104,17 @@ def generate_multi_scenario_test(class_name: str, header: str, method_name: str,
     param_setup = build_param_setup(params)
     param_call = build_param_call(params)
     
+    # Check if we need common.h (only if params use structA or structB)
+    needs_common = any('structA' in str(p) or 'structB' in str(p) for p in params)
+    common_include = '#include "common.h"\n' if needs_common else ''
+    
     test_content = f"""// Comprehensive test suite for {class_name}::{method_name}
 #include <gtest/gtest.h>
 #include <climits>
 #include <thread>
 #include <chrono>
 #include <vector>
-#include "common.h"
-#include "{header}"
+{common_include}#include "{header}"
 
 // Test fixture with helper methods
 class {class_name}_{method_name}_ComprehensiveTest : public ::testing::Test {{
