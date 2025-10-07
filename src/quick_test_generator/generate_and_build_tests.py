@@ -19,6 +19,29 @@ from typing import List, Dict, Set, Tuple
 import glob
 
 
+def is_ollama_available() -> bool:
+    """Check if Ollama is available and running"""
+    try:
+        # Check if ollama command exists
+        result = subprocess.run(
+            ["which", "ollama"],
+            capture_output=True,
+            timeout=2
+        )
+        if result.returncode != 0:
+            return False
+        
+        # Check if ollama is actually running by trying a quick list
+        result = subprocess.run(
+            ["ollama", "list"],
+            capture_output=True,
+            timeout=5
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
 def call_ollama(prompt: str, model: str = "qwen2.5:0.5b") -> str:
     """Call Ollama API to get AI assistance for test generation"""
     try:
@@ -267,7 +290,14 @@ class UnitTestGenerator:
         self.source_root = source_root
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.test_metadata = []
-        self.use_ollama = True  # Enable Ollama improvements
+        
+        # Check if Ollama is available at initialization
+        self.ollama_available = is_ollama_available()
+        if self.ollama_available:
+            print("  🤖 Ollama detected - will use AI-enhanced test generation")
+        else:
+            print("  📝 Using template-based test generation (Ollama not available)")
+        self.use_ollama = self.ollama_available
     
     def _has_init_method(self, class_info: Dict) -> bool:
         """Check if class has an init method"""
@@ -391,6 +421,17 @@ TEST_F({class_name}_{method_name}_Test, MultipleInstancesCanBeCreated) {{
     
     def _generate_boolean_tests(self, class_name: str, method_name: str, method: Dict) -> str:
         """Generate tests for boolean return methods"""
+        
+        # Try Ollama first if available
+        if self.use_ollama:
+            has_init = self._has_init_method({'methods': [method]}) or method_name == 'init'
+            has_close = self._has_close_method({'methods': [method]}) or method_name == 'close'
+            ollama_test = self._generate_ollama_improved_test(class_name, method_name, method, has_init, has_close)
+            if ollama_test:
+                print(f"    🤖 Generated AI-enhanced test for {class_name}::{method_name}")
+                return ollama_test
+        
+        # Fall back to template-based generation
         decls, params = self._generate_param_values(method)
         
         # Check if this class likely has threading issues
@@ -501,6 +542,17 @@ TEST_F({class_name}_{method_name}_Test, HandlesMultipleCalls) {{
     
     def _generate_numeric_tests(self, class_name: str, method_name: str, method: Dict) -> str:
         """Generate tests for numeric return methods with threading safety"""
+        
+        # Try Ollama first if available
+        if self.use_ollama:
+            has_init = self._has_init_method({'methods': [method]})
+            has_close = self._has_close_method({'methods': [method]})
+            ollama_test = self._generate_ollama_improved_test(class_name, method_name, method, has_init, has_close)
+            if ollama_test:
+                print(f"    🤖 Generated AI-enhanced test for {class_name}::{method_name}")
+                return ollama_test
+        
+        # Fall back to template-based generation
         decls, params = self._generate_param_values(method)
         
         # Methods like getTxStats, getRxStats need initialization first
@@ -589,6 +641,17 @@ TEST_F({class_name}_{method_name}_Test, HandlesBoundaryValues) {{
     
     def _generate_void_tests(self, class_name: str, method_name: str, method: Dict) -> str:
         """Generate tests for void methods with improved logic and threading safety"""
+        
+        # Try Ollama first if available
+        if self.use_ollama:
+            has_init = self._has_init_method({'methods': [method]}) or method_name == 'init'
+            has_close = self._has_close_method({'methods': [method]}) or method_name == 'close'
+            ollama_test = self._generate_ollama_improved_test(class_name, method_name, method, has_init, has_close)
+            if ollama_test:
+                print(f"    🤖 Generated AI-enhanced test for {class_name}::{method_name}")
+                return ollama_test
+        
+        # Fall back to template-based generation
         decls, params = self._generate_param_values(method)
         
         # Special handling for methods that might involve threading
@@ -730,6 +793,17 @@ TEST_F({class_name}_{method_name}_Test, HandlesInvalidConditions) {{
     
     def _generate_generic_tests(self, class_name: str, method_name: str, method: Dict) -> str:
         """Generate generic tests for other return types"""
+        
+        # Try Ollama first if available
+        if self.use_ollama:
+            has_init = self._has_init_method({'methods': [method]})
+            has_close = self._has_close_method({'methods': [method]})
+            ollama_test = self._generate_ollama_improved_test(class_name, method_name, method, has_init, has_close)
+            if ollama_test:
+                print(f"    🤖 Generated AI-enhanced test for {class_name}::{method_name}")
+                return ollama_test
+        
+        # Fall back to template-based generation
         decls, params = self._generate_param_values(method)
         content = f"""
 // Test: {method_name} returns valid result
