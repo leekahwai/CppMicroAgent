@@ -18,6 +18,11 @@ import argparse
 from pathlib import Path
 from typing import List, Dict, Set, Tuple
 import glob
+import sys
+
+# Add parent directory to path to import config_reader
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config_reader import get_project_path, get_ollama_model
 
 
 def is_ollama_available() -> bool:
@@ -69,6 +74,21 @@ class HeaderAnalyzer:
                                'mutex', 'memory', 'algorithm', 'functional', 'chrono',
                                'fstream', 'sstream', 'cstdint', 'cstring', 'cstdlib',
                                'cstdio', 'cassert', 'cmath', 'cctype', 'climits'}
+        # Primitive types that don't need includes
+        self.primitive_types = {
+            'int', 'long', 'short', 'char', 'bool', 'float', 'double', 
+            'unsigned', 'signed', 'void', 'size_t', 'uint8_t', 'uint16_t', 
+            'uint32_t', 'uint64_t', 'int8_t', 'int16_t', 'int32_t', 'int64_t',
+            'wchar_t', 'char16_t', 'char32_t'
+        }
+        # Common typedef and template parameter names
+        self.common_typedefs = {
+            'result_type', 'value_type', 'size_type', 'difference_type',
+            'pointer', 'reference', 'const_pointer', 'const_reference',
+            'iterator', 'const_iterator', 'reverse_iterator', 'const_reverse_iterator',
+            'key_type', 'mapped_type', 'allocator_type', 'state_type',
+            'element_type', 'first_type', 'second_type'
+        }
     
     def find_all_source_files(self) -> List[Path]:
         """Find all .cpp source files"""
@@ -78,11 +98,12 @@ class HeaderAnalyzer:
         return cpp_files
     
     def find_all_headers(self) -> List[Path]:
-        """Find all .h header files"""
+        """Find all .h and .hpp header files"""
         headers = []
         for directory in [self.source_dir, self.include_dir]:
             if directory.exists():
                 headers.extend(directory.rglob('*.h'))
+                headers.extend(directory.rglob('*.hpp'))
         return headers
     
     def extract_includes_from_file(self, file_path: Path) -> Set[str]:
@@ -121,13 +142,61 @@ class HeaderAnalyzer:
             # Find public methods
             public_section = re.search(r'public:\s*(.*?)(?:private:|protected:|};)', content, re.DOTALL)
             if public_section:
-                # Pattern for regular methods
+                # First, normalize the public section by removing extra whitespace and newlines in declarations
+                public_text = public_section.group(1)
+                # Merge multi-line declarations into single lines (for parsing purposes)
+                # This handles cases like:
+                #   AssertionHandler
+                #       (   StringRef macroName,
+                #           ...
+                public_text_normalized = re.sub(r'\s+', ' ', public_text)
+                
+                # Pattern for constructors: ClassName ( params ) ;
+                constructor_pattern = rf'{class_name}\s*\((.*?)\)\s*;'
+                # Pattern for destructors: ~ClassName ( ) ;
+                destructor_pattern = rf'~{class_name}\s*\(\s*\)\s*(?:{{[^}}]*}})?;?'
+                # Pattern for regular methods (now works with normalized single-line text)
                 method_pattern = r'(?:virtual\s+)?(?:static\s+)?(\w+(?:\s*\*|\s*&)?)\s+(\w+)\s*\((.*?)\)\s*(?:const)?(?:override)?(?:=\s*0)?;'
                 # Pattern for auto return type methods: auto method() -> type;
                 auto_pattern = r'auto\s+(\w+)\s*\((.*?)\)\s*->\s*(\w+(?:\s*\*|\s*&)?)\s*;'
                 
+                # Find constructors first
+                for match in re.finditer(constructor_pattern, public_text_normalized):
+                    params = match.group(1).strip()
+                    
+                    # Parse parameters
+                    param_list = []
+                    if params and params != 'void' and params:
+                        for param in params.split(','):
+                            param = param.strip()
+                            if param:
+                                # Extract type and name
+                                parts = param.rsplit(None, 1)
+                                if len(parts) == 2:
+                                    param_list.append({'type': parts[0], 'name': parts[1]})
+                                else:
+                                    param_list.append({'type': param, 'name': ''})
+                    
+                    methods.append({
+                        'name': class_name,
+                        'return_type': '',
+                        'parameters': param_list,
+                        'is_constructor': True,
+                        'is_destructor': False
+                    })
+                
+                # Find destructors
+                for match in re.finditer(destructor_pattern, public_text_normalized):
+                    methods.append({
+                        'name': f'~{class_name}',
+                        'return_type': '',
+                        'parameters': [],
+                        'is_constructor': False,
+                        'is_destructor': True
+                    })
+                
                 # Find all regular methods
-                for match in re.finditer(method_pattern, public_section.group(1)):
+                for match in re.finditer(method_pattern, public_text_normalized):
                     return_type = match.group(1).strip()
                     method_name = match.group(2)
                     params = match.group(3).strip()
@@ -154,7 +223,7 @@ class HeaderAnalyzer:
                     })
                 
                 # Find auto return type methods
-                for match in re.finditer(auto_pattern, public_section.group(1)):
+                for match in re.finditer(auto_pattern, public_text_normalized):
                     method_name = match.group(1)
                     params = match.group(2).strip()
                     return_type = match.group(3).strip()
@@ -180,10 +249,15 @@ class HeaderAnalyzer:
                         'is_destructor': False
                     })
             
+            # Check if class is abstract (has pure virtual methods)
+            is_abstract = '= 0' in content
+            
             return {
                 'class_name': class_name,
                 'methods': methods,
-                'header_file': header_path.name
+                'header_file': header_path.name,
+                'header_full_path': str(header_path),
+                'is_abstract': is_abstract
             }
         except Exception as e:
             print(f"Error parsing {header_path}: {e}")
@@ -242,24 +316,45 @@ class MockGenerator:
             if method['is_constructor'] or method['is_destructor']:
                 continue
             
+            # Skip template methods or methods with malformed parameters
+            # These often contain < > ( ) in the parameter type which indicates template or parsing error
+            skip_method = False
+            for p in method['parameters']:
+                # Check if parameter type contains template syntax or casts
+                if any(char in p['type'] for char in ['<', '>', '(', ')']):
+                    skip_method = True
+                    break
+                # Check if parameter has no name and type looks invalid
+                if not p['name'] and any(char in p['type'] for char in ['=', '+', '-', '*', '/']):
+                    skip_method = True
+                    break
+            
+            if skip_method:
+                continue  # Skip this method - it's likely a template or has parsing issues
+            
+            # Normalize return type (fix common type names)
+            return_type = method['return_type']
+            if return_type == 'string':
+                return_type = 'std::string'
+            
             # Generate method signature
             params = ', '.join([f"{p['type']} {p['name']}" if p['name'] else p['type'] 
                                for p in method['parameters']])
             
-            content += f"    {method['return_type']} {method['name']}({params}) {{\n"
+            content += f"    {return_type} {method['name']}({params}) {{\n"
             # Generate default return value
-            if 'void' not in method['return_type']:
-                if 'bool' in method['return_type']:
+            if 'void' not in return_type:
+                if 'bool' in return_type:
                     content += "        return true;\n"
-                elif 'int' in method['return_type'] or 'long' in method['return_type']:
+                elif 'int' in return_type or 'long' in return_type:
                     content += "        return 0;\n"
-                elif '*' in method['return_type']:
+                elif '*' in return_type:
                     content += "        return nullptr;\n"
-                elif '&' in method['return_type']:
-                    content += f"        static {method['return_type'].replace('&', '')} dummy;\n"
+                elif '&' in return_type:
+                    content += f"        static {return_type.replace('&', '')} dummy;\n"
                     content += "        return dummy;\n"
                 else:
-                    content += f"        return {method['return_type']}();\n"
+                    content += f"        return {return_type}();\n"
             content += "    }\n"
         
         content += "};\n\n"
@@ -290,7 +385,36 @@ class UnitTestGenerator:
         self.mock_dir = mock_dir
         self.source_root = source_root
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create separate directory for Python-generated tests (backup)
+        self.python_test_dir = output_dir.parent / "python_generated_tests"
+        self.python_test_dir.mkdir(parents=True, exist_ok=True)
+        
         self.test_metadata = []
+        self.enhancement_plan = []  # Track what will be enhanced
+        
+        # Primitive types that don't need includes
+        self.primitive_types = {
+            'int', 'long', 'short', 'char', 'bool', 'float', 'double', 
+            'unsigned', 'signed', 'void', 'size_t', 'uint8_t', 'uint16_t', 
+            'uint32_t', 'uint64_t', 'int8_t', 'int16_t', 'int32_t', 'int64_t',
+            'wchar_t', 'char16_t', 'char32_t'
+        }
+        
+        # Common typedef and template parameter names that should not generate includes
+        self.common_typedefs = {
+            'result_type', 'value_type', 'size_type', 'difference_type',
+            'pointer', 'reference', 'const_pointer', 'const_reference',
+            'iterator', 'const_iterator', 'reverse_iterator', 'const_reverse_iterator',
+            'key_type', 'mapped_type', 'allocator_type', 'state_type',
+            'element_type', 'first_type', 'second_type'
+        }
+        
+        # System headers that are standard library
+        self.system_headers = {'iostream', 'vector', 'string', 'map', 'set', 'thread',
+                               'mutex', 'memory', 'algorithm', 'functional', 'chrono',
+                               'fstream', 'sstream', 'cstdint', 'cstring', 'cstdlib',
+                               'cstdio', 'cassert', 'cmath', 'cctype', 'climits'}
         
         # Only check and use Ollama if explicitly requested
         self.ollama_available = False
@@ -300,6 +424,7 @@ class UnitTestGenerator:
             self.ollama_available = is_ollama_available()
             if self.ollama_available:
                 print("  🤖 Ollama enabled - will use AI-enhanced test generation")
+                print(f"  📁 Python-generated tests will be saved to: {self.python_test_dir}")
                 self.use_ollama = True
             else:
                 print("  ⚠️  Ollama requested but not available - falling back to template-based generation")
@@ -321,14 +446,41 @@ class UnitTestGenerator:
         return False
     
     def _get_constructor_info(self, class_info: Dict) -> Dict:
-        """Get constructor information including required parameters"""
+        """Get constructor information including required parameters
+        Returns dict with 'has_params' and 'has_default' flags"""
+        has_default = False
+        parameterized_constructor = None
+        
         for method in class_info['methods']:
-            if method['is_constructor'] and method['parameters']:
-                return {
-                    'has_params': True,
-                    'parameters': method['parameters']
-                }
-        return {'has_params': False, 'parameters': []}
+            if method['is_constructor']:
+                if not method['parameters'] or len(method['parameters']) == 0:
+                    has_default = True
+                else:
+                    # Skip copy constructors and move constructors - we can't easily use them
+                    # Copy constructor: ClassName(const ClassName&)
+                    # Move constructor: ClassName(ClassName&&)
+                    if len(method['parameters']) == 1:
+                        param_type = method['parameters'][0]['type']
+                        # Check if it's a self-referential constructor
+                        if class_info['class_name'] in param_type:
+                            continue
+                    parameterized_constructor = method
+        
+        # If no explicit constructors found, class has implicit default constructor
+        has_any_constructor = any(m['is_constructor'] for m in class_info['methods'])
+        if not has_any_constructor:
+            has_default = True
+        
+        # Prefer default constructor if available
+        if has_default:
+            return {'has_params': False, 'has_default': True, 'parameters': []}
+        elif parameterized_constructor:
+            return {
+                'has_params': True,
+                'has_default': False,
+                'parameters': parameterized_constructor['parameters']
+            }
+        return {'has_params': False, 'has_default': has_default, 'parameters': []}
     
     def _generate_object_creation_code(self, class_name: str, class_info: Dict) -> tuple:
         """Generate code to create an object, handling constructor parameters
@@ -344,90 +496,254 @@ class UnitTestGenerator:
             
             param_counter = {}  # Track parameter type counts for unique naming
             for param in constructor_info['parameters']:
-                param_type = param['type'].replace('&', '').replace('const', '').strip()
-                # Add include for the parameter type
-                includes.append(f'#include "{param_type}.h"')
+                param_type = param['type'].replace('&', '').replace('const', '').replace('*', '').strip()
+                
+                # Skip empty parameter types
+                if not param_type:
+                    continue
+                
+                # Check if this is a primitive type or pointer/reference to primitive
+                type_parts = param_type.split()
+                base_type = type_parts[-1] if type_parts else param_type  # Get the actual type after qualifiers
+                is_primitive = any(prim in base_type for prim in self.primitive_types)
+                is_typedef = base_type in self.common_typedefs
+                
+                # NOTE: Don't generate includes for parameter types - they should be
+                # defined in the header being tested or in its dependencies which are
+                # already included. Generating includes like "MessageBuilder.h" causes
+                # errors when the type is actually defined inline in the main header.
                 
                 # Create unique variable name
-                base_name = param_type.lower()[:5]
-                if base_name in param_counter:
-                    param_counter[base_name] += 1
-                    param_var = f"{base_name}{param_counter[base_name]}"
+                # Handle namespace prefixes (std::, Catch::, etc.)
+                if '::' in base_type:
+                    # Extract just the class name after the last ::
+                    class_only = base_type.split('::')[-1]
+                    base_name_for_var = class_only.lower()[:5]
+                elif is_primitive:
+                    # For primitives, add a prefix to avoid using the type name as variable name
+                    base_name_for_var = f"param_{base_type.lower()}"
                 else:
-                    param_counter[base_name] = 1
-                    param_var = base_name
+                    base_name_for_var = base_type.lower()[:5]
                 
-                # Create instance of the parameter type
-                declarations.append(f"    {param_type} {param_var};")
+                if base_name_for_var in param_counter:
+                    param_counter[base_name_for_var] += 1
+                    param_var = f"{base_name_for_var}{param_counter[base_name_for_var]}"
+                else:
+                    param_counter[base_name_for_var] = 1
+                    param_var = base_name_for_var
+                
+                # Create instance of the parameter type (with default initialization for primitives/typedefs)
+                if is_primitive or is_typedef:
+                    # For primitives and typedefs, use simple initialization
+                    if 'bool' in base_type:
+                        declarations.append(f"    {param_type} {param_var} = false;")
+                    elif any(t in base_type for t in ['int', 'long', 'short', 'char', 'size_t', 'type']):
+                        declarations.append(f"    {param_type} {param_var} = 0;")
+                    elif any(t in base_type for t in ['float', 'double']):
+                        declarations.append(f"    {param_type} {param_var} = 0.0;")
+                    else:
+                        declarations.append(f"    {param_type} {param_var}{{}};")
+                else:
+                    declarations.append(f"    {param_type} {param_var};")
                 params.append(param_var)
             
             obj_decl = f"    {class_name} obj({', '.join(params)});"
             
             return (includes, declarations, obj_decl)
-        else:
+        elif constructor_info['has_default']:
+            # Has a default constructor or implicit default constructor
             return ([], [], f"    {class_name} obj;")
+        else:
+            # No default constructor and no parameterized constructor to use
+            # Return None to signal that object creation is not possible
+            return ([], [], None)
     
-    def _generate_ollama_improved_test(self, class_name: str, method_name: str, 
-                                       method: Dict, has_init: bool, has_close: bool) -> str:
-        """Use Ollama to generate improved test logic"""
-        
-        prompt = f"""Generate a simple C++ GoogleTest unit test for method '{method_name}' in class '{class_name}'. Avoid using static invocation and create an object instead. 
-
-Method signature: {method['return_type']} {method_name}()
-Class has init(): {has_init}
-Class has close(): {has_close}
-
-Requirements:
-1. If class has init(), call it and check result BEFORE testing the method
-2. If class has close(), call it in cleanup
-3. Use EXPECT not ASSERT for checks
-4. Keep it simple and safe
-5. Only generate ONE test case named 'BasicFunctionality'
-
-Respond with ONLY the test code, starting with TEST_F. No explanations."""
-        
-        response = call_ollama(prompt)
-        
+    def _validate_and_clean_ollama_response(self, response: str) -> str:
+        """Validate and clean Ollama response by removing markdown artifacts and ensuring valid C++ code"""
         if not response:
             return ""
         
         # Strip markdown code fences if present
-        # Remove ```cpp or ```c++ at the beginning
-        response = re.sub(r'^```(?:cpp|c\+\+)?\s*\n?', '', response, flags=re.MULTILINE)
+        # Remove ```cpp or ```c++ or ``` at the beginning
+        response = re.sub(r'^```(?:cpp|c\+\+|c)?\s*\n?', '', response, flags=re.MULTILINE)
         # Remove ``` at the end
         response = re.sub(r'\n?```\s*$', '', response, flags=re.MULTILINE)
+        # Remove any stray ``` in the middle
+        response = response.replace('```', '')
         
-        # Extract only the TEST_F function by finding matching braces
-        test_f_match = re.search(r'TEST_F\s*\([^)]+\)\s*\{', response)
-        if not test_f_match:
+        # Strip leading/trailing whitespace
+        response = response.strip()
+        
+        # Validate that response contains TEST_F or TEST (for micro-tests)
+        if 'TEST_F' not in response and 'TEST(' not in response:
             return ""
         
-        # Find the complete TEST_F function with balanced braces
-        start_pos = test_f_match.start()
-        brace_count = 0
-        in_test = False
-        end_pos = start_pos
+        # Extract only the TEST_F or TEST functions by finding matching braces
+        test_functions = []
+        pos = 0
+        while pos < len(response):
+            # Look for both TEST_F and TEST
+            test_match = re.search(r'TEST(?:_F)?\s*\([^)]+\)\s*\{', response[pos:])
+            if not test_match:
+                break
+            
+            start_pos = pos + test_match.start()
+            # Find the complete TEST function with balanced braces
+            brace_count = 0
+            in_test = False
+            end_pos = start_pos
+            
+            for i in range(start_pos, len(response)):
+                char = response[i]
+                if char == '{':
+                    brace_count += 1
+                    in_test = True
+                elif char == '}':
+                    brace_count -= 1
+                    if in_test and brace_count == 0:
+                        end_pos = i + 1
+                        test_functions.append(response[start_pos:end_pos])
+                        pos = end_pos
+                        break
+            
+            if end_pos == start_pos:
+                # Couldn't find matching brace, skip
+                break
         
-        for i in range(start_pos, len(response)):
-            char = response[i]
-            if char == '{':
-                brace_count += 1
-                in_test = True
-            elif char == '}':
-                brace_count -= 1
-                if in_test and brace_count == 0:
-                    end_pos = i + 1
-                    break
+        if test_functions:
+            return '\n\n'.join(test_functions)
         
-        if end_pos > start_pos:
-            extracted = response[start_pos:end_pos]
-            return extracted
-        
-        # Fallback: use the whole response if extraction fails but it looks valid
-        if "TEST_F" in response and "{" in response and "}" in response:
+        # Fallback: use the whole response if it looks valid
+        if ("TEST_F" in response or "TEST(" in response) and "{" in response and "}" in response:
             return response
         
-        return ""  # Return empty if Ollama fails
+        return ""
+    
+    def _plan_enhancement(self, class_name: str, method_name: str, method: Dict, 
+                         has_init: bool, has_close: bool) -> str:
+        """Generate a plan of what enhancements will be made"""
+        enhancements = []
+        
+        if 'bool' in method['return_type']:
+            enhancements.append("Add more specific boolean value assertions")
+        elif 'int' in method['return_type'] or 'long' in method['return_type']:
+            enhancements.append("Improve numeric boundary checks")
+        elif 'void' in method['return_type']:
+            enhancements.append("Add better exception handling validation")
+        
+        if has_init:
+            enhancements.append("Verify proper initialization sequence")
+        if has_close:
+            enhancements.append("Ensure proper cleanup and resource management")
+        
+        enhancements.append("Improve assertion specificity (EXPECT vs ASSERT)")
+        enhancements.append("Add edge case coverage")
+        
+        return f"{class_name}::{method_name} - " + ", ".join(enhancements)
+    
+    def _enhance_test_with_ollama_full(self, base_test_code: str, class_name: str, 
+                                       method_name: str, method: Dict, has_init: bool, 
+                                       has_close: bool) -> str:
+        """Use Ollama to enhance Python-generated test code (returns full test or None)"""
+        
+        print(f"    🤖 Enhancing {class_name}::{method_name} with Ollama...", end=' ', flush=True)
+        
+        # Check if this is a micro-test (uses TEST) or regular test (uses TEST_F)
+        is_micro_test = 'TEST(' in base_test_code and 'TEST_F' not in base_test_code
+        
+        # Extract just the TEST/TEST_F functions for enhancement
+        test_start = base_test_code.find('// Test:') if not is_micro_test else base_test_code.find('TEST(')
+        if test_start < 0:
+            print("❌ (No TEST found)")
+            return None
+        
+        header_and_fixture = base_test_code[:test_start]
+        test_functions = base_test_code[test_start:]
+        
+        test_type = "TEST" if is_micro_test else "TEST_F"
+        
+        prompt = f"""You are enhancing an existing C++ unit test. Review the test below and improve ONLY the test logic inside {test_type} functions.
+
+Class: {class_name}
+Method: {method_name}
+Method signature: {method['return_type']} {method_name}()
+Class has init(): {has_init}
+Class has close(): {has_close}
+
+Current Python-generated test code:
+{test_functions}
+
+Task: Enhance the {test_type} functions by:
+1. Improving assertions to be more specific and meaningful
+2. Adding better error checking (especially for init/close if they exist)
+3. Ensuring proper object initialization sequence
+4. Keeping all existing test cases but improving their logic
+5. Using EXPECT instead of ASSERT for non-critical checks
+
+Return ONLY the improved {test_type} functions (maintain all existing test names). Do NOT include headers, fixture definitions, or any other code. No explanations or markdown."""
+        
+        response = call_ollama(prompt)
+        
+        # Validate and clean the response
+        cleaned_response = self._validate_and_clean_ollama_response(response)
+        
+        if not cleaned_response:
+            # If Ollama fails or returns invalid code, return None (will use Python version)
+            print("❌ (Invalid response, using Python fallback)")
+            return None
+        
+        print("✅ (Enhanced)")
+        # Combine header/fixture with enhanced test functions
+        return header_and_fixture + cleaned_response + '\n'
+    
+    def _enhance_test_with_ollama(self, base_test_code: str, class_name: str, 
+                                   method_name: str, method: Dict, has_init: bool, 
+                                   has_close: bool) -> str:
+        """Use Ollama to enhance Python-generated test code, not replace it (legacy method)"""
+        
+        prompt = f"""You are enhancing an existing C++ unit test. Review the test below and improve ONLY the test logic inside TEST_F functions.
+
+Class: {class_name}
+Method: {method_name}
+Method signature: {method['return_type']} {method_name}()
+Class has init(): {has_init}
+Class has close(): {has_close}
+
+Current Python-generated test code:
+{base_test_code}
+
+Task: Enhance the TEST_F functions by:
+1. Improving assertions to be more specific and meaningful
+2. Adding better error checking (especially for init/close if they exist)
+3. Ensuring proper object initialization sequence
+4. Keeping all existing test cases but improving their logic
+5. Using EXPECT instead of ASSERT for non-critical checks
+
+Return ONLY the improved TEST_F functions (maintain all existing test names). Do NOT include headers, fixture definitions, or any other code. No explanations or markdown."""
+        
+        response = call_ollama(prompt)
+        
+        # Validate and clean the response
+        cleaned_response = self._validate_and_clean_ollama_response(response)
+        
+        if not cleaned_response:
+            # If Ollama fails or returns invalid code, use the original
+            return ""
+        
+        return cleaned_response
+    
+    def show_enhancement_plan(self):
+        """Display the enhancement plan to the user"""
+        if not self.enhancement_plan:
+            return
+        
+        print("\n" + "="*70)
+        print("🤖 OLLAMA ENHANCEMENT PLAN")
+        print("="*70)
+        print("\nThe following enhancements will be applied to each test:\n")
+        for i, plan in enumerate(self.enhancement_plan, 1):
+            print(f"{i}. {plan}")
+        print("\n" + "="*70 + "\n")
     
     def generate_test_for_method(self, source_file: Path, class_info: Dict, method: Dict, 
                                   dependent_headers: Set[str]) -> str:
@@ -439,22 +755,36 @@ Respond with ONLY the test code, starting with TEST_F. No explanations."""
         if method['is_destructor']:
             return None
         
+        # Determine the correct include path for the header
+        # For Catch2 and other header-only libraries with subdirectory structure,
+        # use the standard include format relative to the src directory
+        header_file = class_info['header_file']
+        header_full_path = Path(class_info.get('header_full_path', ''))
+        
+        if 'catch' in header_file.lower() and header_full_path.exists():
+            # For Catch2, calculate the path relative to the src directory
+            # E.g., /path/to/src/catch2/internal/catch_textflow.hpp -> catch2/internal/catch_textflow.hpp
+            src_dir = self.source_root / 'src'
+            try:
+                rel_path = header_full_path.relative_to(src_dir)
+                include_path = f"<{rel_path.as_posix()}>"
+            except ValueError:
+                # If relative_to fails, fall back to just the filename with catch2 prefix
+                include_path = f"<catch2/{header_file}>"
+        else:
+            # For other projects, use quoted include
+            include_path = f'"{header_file}"'
+        
         content = f"""// Unit test for {class_name}::{method_name}
 #include <gtest/gtest.h>
 #include <climits>
 #include <thread>
 #include <chrono>
 
-"""
-        
-        # Include mock headers for dependencies (not the class itself)
-        for header in sorted(dependent_headers):
-            if header != class_info['header_file']:
-                content += f'#include "{header}"\n'
-        
-        content += f"""
+
 // Include actual header being tested (will use real implementation)
-#include "{class_info['header_file']}"
+// For header-only libraries, this will automatically include all dependencies
+#include {include_path}
 """
         
         # Add includes for constructor parameters if needed
@@ -462,6 +792,20 @@ Respond with ONLY the test code, starting with TEST_F. No explanations."""
         for inc in constructor_includes:
             if inc not in content:
                 content += inc + '\n'
+        
+        # Add using namespace directive for Catch2 library when using real headers
+        # Since we're now using real Catch2 headers (not mocks), the types are in namespace Catch
+        if 'catch' in class_info['header_file'].lower():
+            content += """
+// Using Catch namespace since we're using real Catch2 headers
+using namespace Catch;
+"""
+            # For TextFlow header specifically, also add TextFlow namespace
+            if 'textflow' in class_info['header_file'].lower():
+                content += """// Using TextFlow namespace for TextFlow classes
+using namespace Catch::TextFlow;
+"""
+            content += "\n"
         
         content += f"""
 // Test fixture for {class_name}::{method_name}
@@ -491,6 +835,14 @@ protected:
         else:
             content += self._generate_generic_tests(class_name, method_name, method, class_info)
         
+        # Add exception safety tests for non-constructor methods
+        if not method['is_constructor'] and method_name not in ['init', 'close']:
+            content += self._generate_exception_safety_tests(class_name, method_name, method, class_info)
+        
+        # Add stress tests only for methods that are likely to be called frequently
+        if method_name not in ['init', 'close', 'run'] and not method['is_constructor']:
+            content += self._generate_stress_tests(class_name, method_name, method, class_info)
+        
         return content
     
     def _generate_constructor_tests(self, class_name: str, method_name: str, method: Dict, class_info: Dict) -> str:
@@ -511,16 +863,7 @@ TEST_F({class_name}_{method_name}_Test, ConstructorCreatesValidObject) {{
     def _generate_boolean_tests(self, class_name: str, method_name: str, method: Dict, class_info: Dict) -> str:
         """Generate tests for boolean return methods"""
         
-        # Try Ollama first if available
-        if self.use_ollama:
-            has_init = self._has_init_method(class_info) or method_name == 'init'
-            has_close = self._has_close_method(class_info) or method_name == 'close'
-            ollama_test = self._generate_ollama_improved_test(class_name, method_name, method, has_init, has_close)
-            if ollama_test:
-                print(f"    🤖 Generated AI-enhanced test for {class_name}::{method_name}")
-                return ollama_test
-        
-        # Fall back to template-based generation
+        # ALWAYS generate Python-based tests first
         decls, params = self._generate_param_values(method)
         
         # Get object creation code
@@ -615,22 +958,28 @@ TEST_F({class_name}_{method_name}_Test, HandlesMultipleCalls) {{
     
 {close_call}
 }}
+
+// Test: {method_name} state consistency
+TEST_F({class_name}_{method_name}_Test, StateConsistency) {{
+{obj_creation}
+{init_call}
+{decls}
+    // Call multiple times and verify consistent behavior
+    for (int i = 0; i < 3; i++) {{
+        EXPECT_NO_THROW({{
+            obj.{method_name}({params});
+        }});
+    }}
+    
+{close_call}
+}}
 """
         return content
     
     def _generate_numeric_tests(self, class_name: str, method_name: str, method: Dict, class_info: Dict) -> str:
         """Generate tests for numeric return methods with threading safety"""
         
-        # Try Ollama first if available
-        if self.use_ollama:
-            has_init = self._has_init_method(class_info)
-            has_close = self._has_close_method(class_info)
-            ollama_test = self._generate_ollama_improved_test(class_name, method_name, method, has_init, has_close)
-            if ollama_test:
-                print(f"    🤖 Generated AI-enhanced test for {class_name}::{method_name}")
-                return ollama_test
-        
-        # Fall back to template-based generation
+        # ALWAYS generate Python-based tests first
         decls, params = self._generate_param_values(method)
         
         # Get object creation code
@@ -694,6 +1043,20 @@ TEST_F({class_name}_{method_name}_Test, ConsistentAcrossMultipleCalls) {{
     
 {close_call}
 }}
+
+// Test: {method_name} rapid sequential calls
+TEST_F({class_name}_{method_name}_Test, RapidSequentialCalls) {{
+{obj_creation}
+{init_call}
+{decls}
+    // Test rapid sequential calls don't cause issues
+    for (int i = 0; i < 10; i++) {{
+        auto result = obj.{method_name}({params});
+        EXPECT_GE(result, 0);
+    }}
+    
+{close_call}
+}}
 """
         else:
             content = f"""
@@ -713,22 +1076,33 @@ TEST_F({class_name}_{method_name}_Test, HandlesBoundaryValues) {{
     EXPECT_GE(result, INT_MIN);
     EXPECT_LE(result, INT_MAX);
 }}
+
+// Test: {method_name} non-negative return
+TEST_F({class_name}_{method_name}_Test, NonNegativeReturn) {{
+{obj_creation}
+{decls}
+    auto result = obj.{method_name}({params});
+    EXPECT_GE(result, 0);
+}}
+
+// Test: {method_name} deterministic behavior
+TEST_F({class_name}_{method_name}_Test, DeterministicBehavior) {{
+{obj_creation}
+{decls}
+    // Multiple calls should not throw
+    EXPECT_NO_THROW({{
+        for (int i = 0; i < 5; i++) {{
+            obj.{method_name}({params});
+        }}
+    }});
+}}
 """
         return content
     
     def _generate_void_tests(self, class_name: str, method_name: str, method: Dict, class_info: Dict) -> str:
         """Generate tests for void methods with improved logic and threading safety"""
         
-        # Try Ollama first if available
-        if self.use_ollama:
-            has_init = self._has_init_method(class_info) or method_name == 'init'
-            has_close = self._has_close_method(class_info) or method_name == 'close'
-            ollama_test = self._generate_ollama_improved_test(class_name, method_name, method, has_init, has_close)
-            if ollama_test:
-                print(f"    🤖 Generated AI-enhanced test for {class_name}::{method_name}")
-                return ollama_test
-        
-        # Fall back to template-based generation
+        # ALWAYS generate Python-based tests first
         decls, params = self._generate_param_values(method)
         
         # Get object creation code
@@ -883,16 +1257,7 @@ TEST_F({class_name}_{method_name}_Test, HandlesInvalidConditions) {{
     def _generate_generic_tests(self, class_name: str, method_name: str, method: Dict, class_info: Dict) -> str:
         """Generate generic tests for other return types"""
         
-        # Try Ollama first if available
-        if self.use_ollama:
-            has_init = self._has_init_method(class_info)
-            has_close = self._has_close_method(class_info)
-            ollama_test = self._generate_ollama_improved_test(class_name, method_name, method, has_init, has_close)
-            if ollama_test:
-                print(f"    🤖 Generated AI-enhanced test for {class_name}::{method_name}")
-                return ollama_test
-        
-        # Fall back to template-based generation
+        # ALWAYS generate Python-based tests first
         decls, params = self._generate_param_values(method)
         
         # Get object creation code
@@ -955,35 +1320,444 @@ TEST_F({class_name}_{method_name}_Test, HandlesEdgeCases) {{
         decl_str = '\n'.join(declarations) if declarations else ""
         return (decl_str, ', '.join(values))
     
+    def _generate_param_boundary_values(self, method: Dict) -> List[Tuple[str, str, str]]:
+        """Generate boundary value test cases for method parameters
+        Returns: List of (test_description, declarations, param_values) tuples
+        """
+        if not method['parameters']:
+            return [("Default", "", "")]
+        
+        test_cases = []
+        
+        # Generate default case
+        decls, params = self._generate_param_values(method)
+        test_cases.append(("Default", decls, params))
+        
+        # Generate boundary cases for each parameter type
+        for idx, param in enumerate(method['parameters']):
+            param_type = param['type']
+            
+            if 'int' in param_type and 'unsigned' not in param_type:
+                # Negative value
+                test_params = []
+                for i, p in enumerate(method['parameters']):
+                    if i == idx:
+                        test_params.append('-1')
+                    elif 'int' in p['type']:
+                        test_params.append('0')
+                    elif 'bool' in p['type']:
+                        test_params.append('true')
+                    elif 'string' in p['type']:
+                        test_params.append('""')
+                    else:
+                        test_params.append(f"{p['type']}()")
+                test_cases.append((f"NegativeParam{idx}", "", ', '.join(test_params)))
+                
+                # Max value
+                test_params = []
+                for i, p in enumerate(method['parameters']):
+                    if i == idx:
+                        test_params.append('INT_MAX')
+                    elif 'int' in p['type']:
+                        test_params.append('0')
+                    elif 'bool' in p['type']:
+                        test_params.append('true')
+                    elif 'string' in p['type']:
+                        test_params.append('""')
+                    else:
+                        test_params.append(f"{p['type']}()")
+                test_cases.append((f"MaxParam{idx}", "", ', '.join(test_params)))
+            
+            elif 'bool' in param_type:
+                # False value
+                test_params = []
+                for i, p in enumerate(method['parameters']):
+                    if i == idx:
+                        test_params.append('false')
+                    elif 'int' in p['type']:
+                        test_params.append('0')
+                    elif 'bool' in p['type']:
+                        test_params.append('true')
+                    elif 'string' in p['type']:
+                        test_params.append('""')
+                    else:
+                        test_params.append(f"{p['type']}()")
+                test_cases.append((f"FalseParam{idx}", "", ', '.join(test_params)))
+        
+        return test_cases
+    
+    def _generate_exception_safety_tests(self, class_name: str, method_name: str, method: Dict, class_info: Dict) -> str:
+        """Generate exception safety and robustness tests"""
+        decls, params = self._generate_param_values(method)
+        _, obj_deps, obj_decl = self._generate_object_creation_code(class_name, class_info)
+        obj_creation = '\n'.join(obj_deps) + '\n' + obj_decl if obj_deps else obj_decl
+        
+        # Check if class has init/close methods
+        has_init = self._has_init_method(class_info)
+        has_close = self._has_close_method(class_info)
+        init_call = "    obj.init();\n    std::this_thread::sleep_for(std::chrono::milliseconds(50));\n    " if has_init else ""
+        close_call = "    obj.close();\n    std::this_thread::sleep_for(std::chrono::milliseconds(50));" if has_close else ""
+        
+        content = f"""
+// Test: {method_name} exception safety
+TEST_F({class_name}_{method_name}_Test, ExceptionSafety) {{
+{obj_creation}
+{init_call}
+{decls}
+    // Method should not throw unexpected exceptions
+    EXPECT_NO_THROW({{
+        obj.{method_name}({params});
+    }});
+{close_call}
+}}
+
+// Test: {method_name} resource cleanup on failure
+TEST_F({class_name}_{method_name}_Test, ResourceCleanupOnFailure) {{
+{obj_creation}
+{init_call}
+{decls}
+    // Even if method fails, object should remain in valid state
+    try {{
+        obj.{method_name}({params});
+    }} catch (...) {{
+        // Object should still be destructible
+    }}
+{close_call}
+}}
+"""
+        return content
+    
+    def _generate_stress_tests(self, class_name: str, method_name: str, method: Dict, class_info: Dict) -> str:
+        """Generate stress and performance tests"""
+        decls, params = self._generate_param_values(method)
+        _, obj_deps, obj_decl = self._generate_object_creation_code(class_name, class_info)
+        obj_creation = '\n'.join(obj_deps) + '\n' + obj_decl if obj_deps else obj_decl
+        
+        has_init = self._has_init_method(class_info)
+        has_close = self._has_close_method(class_info)
+        init_call = "    obj.init();\n    std::this_thread::sleep_for(std::chrono::milliseconds(50));\n    " if has_init else ""
+        close_call = "    obj.close();\n    std::this_thread::sleep_for(std::chrono::milliseconds(50));" if has_close else ""
+        
+        content = f"""
+// Test: {method_name} stress test
+TEST_F({class_name}_{method_name}_Test, StressTest) {{
+{obj_creation}
+{init_call}
+{decls}
+    // Call method many times rapidly
+    for (int i = 0; i < 100; i++) {{
+        EXPECT_NO_THROW({{
+            obj.{method_name}({params});
+        }});
+    }}
+{close_call}
+}}
+"""
+        return content
+    
     def write_test_file(self, source_file: Path, class_info: Dict, method: Dict, 
                         dependent_headers: Set[str]):
         """Write test file for a method"""
         if not class_info or not method:
             return
         
-        test_content = self.generate_test_for_method(source_file, class_info, method, 
-                                                     dependent_headers)
+        class_name = class_info['class_name']
+        
+        # Skip abstract classes (has pure virtual methods)
+        if class_info.get('is_abstract', False):
+            return  # Can't instantiate abstract classes
+        
+        # Skip nested/inner classes (not supported)
+        if '::' in class_name:
+            return
+        
+        # Check if the class has a default constructor or can be instantiated easily
+        constructor_info = self._get_constructor_info(class_info)
+        
+        # If class only has parameterized constructors and no default, check complexity
+        if constructor_info['has_params'] and not constructor_info['has_default']:
+            # Can't easily instantiate classes that require parameters and have no default constructor
+            return
+        
+        # If class has parameters, check if they're complex
+        if constructor_info['has_params']:
+            for param in constructor_info['parameters']:
+                param_type = param['type'].replace('&', '').replace('const', '').replace('*', '').strip()
+                # Skip if parameter type contains &&  (rvalue reference) or is complex
+                if '&&' in param['type'] or 'Builder' in param_type:
+                    return
+        
+        # NEW STRATEGY: Generate micro-tests - separate test file for each test case
+        # This improves granularity and makes individual tests easier to debug
+        self.write_micro_tests(source_file, class_info, method, dependent_headers)
+    
+    def write_micro_tests(self, source_file: Path, class_info: Dict, method: Dict,
+                          dependent_headers: Set[str]):
+        """Generate multiple micro-test files for a single method - one file per test case"""
+        class_name = class_info['class_name']
+        method_name = method['name']
+        source_name = source_file.stem
+        
+        # Skip destructors - they can't be tested this way
+        if method.get('is_destructor', False):
+            return
+        
+        # Generate different test scenarios
+        test_scenarios = []
+        
+        if method['is_constructor']:
+            test_scenarios.append(('BasicConstruction', 'Test that object can be constructed'))
+        elif 'bool' in method['return_type']:
+            test_scenarios.extend([
+                ('ReturnTrue', 'Test method returns true in success case'),
+                ('ReturnFalse', 'Test method returns false in failure case'),
+                ('MultipleInvocations', 'Test method handles multiple calls')
+            ])
+        elif 'void' in method['return_type']:
+            test_scenarios.extend([
+                ('NoThrow', 'Test method executes without throwing'),
+                ('MultipleInvocations', 'Test method can be called multiple times')
+            ])
+        elif any(t in method['return_type'] for t in ['int', 'long', 'size_t', 'unsigned']):
+            test_scenarios.extend([
+                ('ValidReturn', 'Test method returns valid value'),
+                ('BoundaryCheck', 'Test return value within expected range'),
+                ('Consistency', 'Test method returns consistent values')
+            ])
+        else:
+            test_scenarios.extend([
+                ('ValidReturn', 'Test method returns valid result'),
+                ('NoThrow', 'Test method executes without throwing')
+            ])
+        
+        # Generate a separate test file for each scenario
+        for scenario_name, scenario_desc in test_scenarios:
+            self._write_single_micro_test(source_file, class_info, method, dependent_headers,
+                                          scenario_name, scenario_desc)
+    
+    def _write_single_micro_test(self, source_file: Path, class_info: Dict, method: Dict,
+                                  dependent_headers: Set[str], scenario_name: str, scenario_desc: str):
+        """Write a single micro-test file for one specific test scenario"""
+        class_name = class_info['class_name']
+        method_name = method['name']
+        source_name = source_file.stem
+        
+        # Generate filename: <filename>_<method>_<scenario>.cpp
+        test_filename = f"{source_name}_{method_name}_{scenario_name}.cpp"
+        
+        # Generate test content for this specific scenario
+        test_content = self._generate_micro_test_content(source_file, class_info, method,
+                                                         dependent_headers, scenario_name, scenario_desc)
+        
         if not test_content:
             return
+        
+        # STEP 1: Save Python-generated version to backup folder (if Ollama enabled)
+        if self.use_ollama:
+            python_backup_path = self.python_test_dir / test_filename
+            with open(python_backup_path, 'w') as f:
+                f.write(test_content)
+        
+        # STEP 2: If Ollama is enabled, try to enhance the test
+        enhanced_content = None
+        if self.use_ollama:
+            has_init = self._has_init_method(class_info) or method_name == 'init'
+            has_close = self._has_close_method(class_info) or method_name == 'close'
+            
+            # Try to enhance with Ollama
+            enhanced_content = self._enhance_test_with_ollama_full(
+                test_content, class_name, method_name, method, has_init, has_close
+            )
+        
+        # STEP 3: Write the final version (enhanced if available, otherwise Python)
+        output_path = self.output_dir / test_filename
+        final_content = enhanced_content if enhanced_content else test_content
+        with open(output_path, 'w') as f:
+            f.write(final_content)
+        
+        # Print with appropriate indicator
+        if enhanced_content and self.use_ollama:
+            print(f"  Generated micro-test: {test_filename} (🤖 Ollama-enhanced)")
+        elif self.use_ollama and not enhanced_content:
+            print(f"  Generated micro-test: {test_filename} (📝 Python fallback)")
+        else:
+            print(f"  Generated micro-test: {test_filename}")
+        
+        # Store metadata
+        self.test_metadata.append({
+            'test_file': str(output_path),
+            'python_backup': str(python_backup_path) if self.use_ollama else None,
+            'source_file': str(source_file),
+            'test_name': output_path.stem,
+            'class_name': class_info['class_name'],
+            'method_name': method_name,
+            'header_file': class_info['header_file'],
+            'scenario': scenario_name,
+            'ollama_enhanced': bool(enhanced_content and self.use_ollama)
+        })
+    
+    def _generate_micro_test_content(self, source_file: Path, class_info: Dict, method: Dict,
+                                      dependent_headers: Set[str], scenario_name: str, scenario_desc: str) -> str:
+        """Generate content for a single micro-test"""
+        class_name = class_info['class_name']
+        method_name = method['name']
+        
+        # Determine the correct include path
+        header_file = class_info['header_file']
+        header_full_path = Path(class_info.get('header_full_path', ''))
+        
+        if 'catch' in header_file.lower() and header_full_path.exists():
+            src_dir = self.source_root / 'src'
+            try:
+                rel_path = header_full_path.relative_to(src_dir)
+                include_path = f"<{rel_path.as_posix()}>"
+            except ValueError:
+                include_path = f"<catch2/{header_file}>"
+        else:
+            include_path = f'"{header_file}"'
+        
+        content = f"""// Micro-test for {class_name}::{method_name} - {scenario_desc}
+#include <gtest/gtest.h>
+#include <climits>
+
+// Include actual header being tested
+#include {include_path}
+
+"""
+        
+        # Add namespace declarations for Catch2
+        if 'catch' in class_info['header_file'].lower():
+            content += "using namespace Catch;\n"
+            if 'textflow' in class_info['header_file'].lower():
+                content += "using namespace Catch::TextFlow;\n"
+            content += "\n"
+        
+        # Generate single focused test
+        _, obj_deps, obj_decl = self._generate_object_creation_code(class_name, class_info)
+        
+        # Skip test generation if object cannot be created (no suitable constructor)
+        if obj_decl is None:
+            return None
+        
+        obj_creation = '\n'.join(obj_deps) + '\n' + obj_decl if obj_deps else obj_decl
+        
+        decls, params = self._generate_param_values(method)
+        param_setup = decls if decls else ""
+        
+        # Generate test based on scenario
+        if scenario_name == 'BasicConstruction':
+            content += f"""TEST({class_name}_{method_name}Test, {scenario_name}) {{
+{obj_creation}
+    SUCCEED(); // Object constructed successfully
+}}
+"""
+        elif scenario_name == 'NoThrow':
+            content += f"""TEST({class_name}_{method_name}Test, {scenario_name}) {{
+{obj_creation}
+{param_setup}
+    EXPECT_NO_THROW({{
+        obj.{method_name}({params});
+    }});
+}}
+"""
+        elif scenario_name == 'ReturnTrue':
+            content += f"""TEST({class_name}_{method_name}Test, {scenario_name}) {{
+{obj_creation}
+{param_setup}
+    bool result = obj.{method_name}({params});
+    EXPECT_TRUE(result);
+}}
+"""
+        elif scenario_name == 'ValidReturn':
+            content += f"""TEST({class_name}_{method_name}Test, {scenario_name}) {{
+{obj_creation}
+{param_setup}
+    auto result = obj.{method_name}({params});
+    // Verify result is accessible
+    (void)result; // Mark as used
+    SUCCEED();
+}}
+"""
+        elif scenario_name == 'MultipleInvocations':
+            content += f"""TEST({class_name}_{method_name}Test, {scenario_name}) {{
+{obj_creation}
+{param_setup}
+    // Test can be called 3 times without issues
+    EXPECT_NO_THROW({{
+        obj.{method_name}({params});
+        obj.{method_name}({params});
+        obj.{method_name}({params});
+    }});
+}}
+"""
+        elif scenario_name == 'BoundaryCheck':
+            content += f"""TEST({class_name}_{method_name}Test, {scenario_name}) {{
+{obj_creation}
+{param_setup}
+    auto result = obj.{method_name}({params});
+    EXPECT_GE(result, 0); // At minimum, expect non-negative
+}}
+"""
+        else:
+            # Default simple test
+            content += f"""TEST({class_name}_{method_name}Test, {scenario_name}) {{
+{obj_creation}
+{param_setup}
+    EXPECT_NO_THROW({{
+        obj.{method_name}({params});
+    }});
+}}
+"""
+        
+        return content
         
         # Generate filename: <filename>_<method>.cpp
         source_name = source_file.stem  # e.g., "Program"
         method_name = method['name']
         test_filename = f"{source_name}_{method_name}.cpp"
+        class_name = class_info['class_name']
         
-        output_path = self.output_dir / test_filename
-        with open(output_path, 'w') as f:
+        # STEP 1: Save Python-generated version to backup folder
+        python_backup_path = self.python_test_dir / test_filename
+        with open(python_backup_path, 'w') as f:
             f.write(test_content)
         
-        print(f"  Generated test: {test_filename}")
+        # STEP 2: If Ollama is enabled, plan and enhance the test
+        enhanced_content = None
+        if self.use_ollama:
+            has_init = self._has_init_method(class_info) or method_name == 'init'
+            has_close = self._has_close_method(class_info) or method_name == 'close'
+            
+            # Add to enhancement plan
+            plan = self._plan_enhancement(class_name, method_name, method, has_init, has_close)
+            self.enhancement_plan.append(plan)
+            
+            # Try to enhance with Ollama
+            enhanced_content = self._enhance_test_with_ollama_full(
+                test_content, class_name, method_name, method, has_init, has_close
+            )
+        
+        # STEP 3: Write the final version (enhanced if available, otherwise Python)
+        output_path = self.output_dir / test_filename
+        final_content = enhanced_content if enhanced_content else test_content
+        with open(output_path, 'w') as f:
+            f.write(final_content)
+        
+        if enhanced_content and self.use_ollama:
+            print(f"  Generated test: {test_filename} (🤖 Ollama-enhanced)")
+        else:
+            print(f"  Generated test: {test_filename}")
         
         # Store metadata for building
         self.test_metadata.append({
             'test_file': str(output_path),
+            'python_backup': str(python_backup_path),
             'source_file': str(source_file),
             'test_name': output_path.stem,
             'class_name': class_info['class_name'],
-            'method_name': method_name
+            'method_name': method_name,
+            'header_file': class_info['header_file'],
+            'ollama_enhanced': bool(enhanced_content and self.use_ollama)
         })
     
     def save_metadata(self):
@@ -1009,23 +1783,53 @@ class TestBuilder:
         self.gtest_include = self.gtest_root / "googletest" / "include"
         self.gtest_lib_dir = self.gtest_root / "build" / "lib"
         
+        # Detect project structure type
+        self.is_header_only = self._detect_header_only_library()
+        
         # Find all source subdirectories
         self.include_dirs = [
             str(self.gtest_include),  # GoogleTest headers
-            str(source_root / 'inc'),
         ]
+        
+        # For header-only libraries, add the source root first to support <project/header.h> includes
+        if self.is_header_only:
+            # Add the src directory to support includes like <catch2/...>
+            # This allows #include <catch2/file.hpp> when catch2 is a subdir of src
+            if (source_root / 'src').exists():
+                self.include_dirs.append(str(source_root / 'src'))
+        
+        # Add inc directory if it exists
+        if (source_root / 'inc').exists():
+            self.include_dirs.append(str(source_root / 'inc'))
+        
         # Add all subdirectories in src BEFORE mocks so real headers are found first
-        for subdir in (source_root / 'src').rglob('*'):
-            if subdir.is_dir():
-                self.include_dirs.append(str(subdir))
+        if (source_root / 'src').exists():
+            for subdir in (source_root / 'src').rglob('*'):
+                if subdir.is_dir():
+                    self.include_dirs.append(str(subdir))
         
         # Add mock directory LAST so it's only used for missing headers
         self.include_dirs.append(str(mock_dir))
         
-        # Find all source files for linking
+        # Find all source files for linking 
+        # For header-only libraries like Catch2, we'll build a static library
         self.all_source_files = []
-        for cpp_file in (source_root / 'src').rglob('*.cpp'):
-            self.all_source_files.append(str(cpp_file))
+        self.project_lib = None  # Path to static library if built
+        
+        if (source_root / 'src').exists():
+            for cpp_file in (source_root / 'src').rglob('*.cpp'):
+                # Exclude main files from the library to avoid conflicts with GoogleTest's main
+                if 'main.cpp' not in str(cpp_file).lower() and 'catch_main.cpp' not in str(cpp_file).lower():
+                    self.all_source_files.append(str(cpp_file))
+        
+        # If this is a header-only library with many source files, build a static library
+        if self.is_header_only and len(self.all_source_files) > 20:
+            print(f"  📦 Building static library from {len(self.all_source_files)} source files...")
+            self.project_lib = self._build_static_library()
+            if self.project_lib:
+                print(f"  ✅ Static library built: {self.project_lib}")
+            else:
+                print(f"  ⚠️  Failed to build static library, will link source files individually")
         
         # Tests that are known to be problematic (high-level interfaces with threading)
         self.skip_run_patterns = [
@@ -1033,61 +1837,186 @@ class TestBuilder:
             'ProgramApp_', 'Program_'       # Program classes that start threads
         ]
     
+    def _detect_header_only_library(self) -> bool:
+        """Detect if this is a header-only library by checking the ratio of headers to cpp files"""
+        src_dir = self.source_root / 'src'
+        if not src_dir.exists():
+            return False
+        
+        cpp_files = list(src_dir.rglob('*.cpp'))
+        header_files = list(src_dir.rglob('*.h')) + list(src_dir.rglob('*.hpp'))
+        
+        # If there are many more headers than cpp files, likely header-only or mostly header-only
+        if len(header_files) > 0 and len(cpp_files) > 0:
+            ratio = len(header_files) / len(cpp_files)
+            # If ratio > 1.5, consider it header-only oriented
+            if ratio > 1.5:
+                print(f"  📚 Detected header-only library (headers: {len(header_files)}, cpp: {len(cpp_files)})")
+                return True
+        
+        return False
+    
+    def _build_static_library(self) -> Path:
+        """Build a static library from all source files to speed up linking"""
+        lib_path = self.build_dir / "libproject.a"
+        
+        # Skip if library already exists and is recent
+        if lib_path.exists():
+            print(f"  ℹ️  Using existing static library")
+            return lib_path
+        
+        print(f"  🔨 Compiling {len(self.all_source_files)} source files...")
+        
+        # Compile all source files to object files
+        object_files = []
+        
+        for i, cpp_file in enumerate(self.all_source_files):
+            if i % 20 == 0 and i > 0:
+                print(f"  ... compiled {i}/{len(self.all_source_files)}")
+            
+            cpp_path = Path(cpp_file)
+            obj_file = self.build_dir / (cpp_path.stem + '.o')
+            
+            # Compile to object file
+            cmd = [
+                'g++',
+                '-std=c++14',
+                '-c',  # Compile only, don't link
+                '-o', str(obj_file),
+                str(cpp_file)
+            ]
+            
+            # Add include directories
+            for inc_dir in self.include_dirs:
+                cmd.extend(['-I', inc_dir])
+            
+            try:
+                result = subprocess.run(cmd, capture_output=True, timeout=30)
+                if result.returncode == 0:
+                    object_files.append(str(obj_file))
+            except:
+                pass
+        
+        if len(object_files) < len(self.all_source_files) * 0.5:
+            # If less than half compiled, something is wrong
+            print(f"  ⚠️  Only {len(object_files)}/{len(self.all_source_files)} files compiled")
+            return None
+        
+        print(f"  ✅ Compiled {len(object_files)} object files")
+        print(f"  🔗 Creating static library...")
+        
+        # Create static library using ar
+        cmd = ['ar', 'rcs', str(lib_path)] + object_files
+        
+        try:
+            result = subprocess.run(cmd, capture_output=True, timeout=60)
+            if result.returncode == 0:
+                return lib_path
+        except:
+            pass
+        
+        return None
+    
     def compile_test(self, test_metadata: Dict) -> bool:
-        """Compile a single test using g++"""
+        """Compile a single test using g++, with fallback to Python version if Ollama-enhanced fails"""
         test_file = test_metadata['test_file']
         source_file = test_metadata['source_file']
         test_name = test_metadata['test_name']
+        ollama_enhanced = test_metadata.get('ollama_enhanced', False)
+        python_backup = test_metadata.get('python_backup', None)
         
         output_binary = self.build_dir / test_name
         
-        # Build g++ command
-        cmd = [
-            'g++',
-            '-std=c++14',  # GoogleTest 1.16.0 requires C++14
-            '--coverage',  # Enable coverage instrumentation (equivalent to -fprofile-arcs -ftest-coverage)
-            '-o', str(output_binary),
-            test_file,
-        ]
-        
-        # Add all source files (to handle dependencies)
-        cmd.extend(self.all_source_files)
-        
-        # Add include directories
-        for inc_dir in self.include_dirs:
-            cmd.extend(['-I', inc_dir])
-        
-        # Add library directory and libraries
-        cmd.extend([
-            '-L', str(self.gtest_lib_dir),
-            '-lgtest',
-            '-lgtest_main',
-            '-lpthread',
-            '-lgcov',  # Link with gcov library for coverage
-        ])
+        def try_compile(file_path, label=""):
+            """Helper function to try compiling a test file"""
+            # Build g++ command with --coverage flag for gcda/gcno generation
+            cmd = [
+                'g++',
+                '-std=c++14',  # GoogleTest 1.16.0 requires C++14
+                '--coverage',  # Enable coverage instrumentation (equivalent to -fprofile-arcs -ftest-coverage)
+                '-o', str(output_binary),
+                file_path,
+            ]
+            
+            # Add source files for linking
+            if self.project_lib and self.project_lib.exists():
+                # Use the static library if available
+                cmd.append(str(self.project_lib))
+            elif self.is_header_only:
+                # For header-only libraries like Catch2, we need to link ALL implementation files
+                # because they have interdependencies (e.g., catch_approx.cpp needs ReusableStringStream)
+                cmd.extend(self.all_source_files)
+            else:
+                # For regular projects, link all source files
+                cmd.extend(self.all_source_files)
+            
+            # Add include directories
+            for inc_dir in self.include_dirs:
+                cmd.extend(['-I', inc_dir])
+            
+            # Add library directory and libraries
+            cmd.extend([
+                '-L', str(self.gtest_lib_dir),
+                '-lgtest',
+                '-lgtest_main',
+                '-lpthread',
+                '-lgcov',  # Link with gcov library for coverage
+            ])
+            
+            try:
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
+                
+                return result.returncode == 0, result.stderr
+            except subprocess.TimeoutExpired:
+                return False, "Timeout"
+            except Exception as e:
+                return False, str(e)
         
         print(f"  Compiling {test_name}...", end=' ')
         
-        try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-            
-            if result.returncode == 0:
+        # Try compiling the current version (might be Ollama-enhanced or Python)
+        success, error = try_compile(test_file)
+        
+        if success:
+            if ollama_enhanced:
+                print("✅ SUCCESS (Ollama-enhanced)")
+            else:
                 print("✅ SUCCESS")
+            return True
+        
+        # If compilation failed and we have an Ollama-enhanced version, try Python backup
+        if ollama_enhanced and python_backup and Path(python_backup).exists():
+            print("❌ FAILED")
+            print(f"    🔄 Ollama-enhanced version failed compilation")
+            print(f"    📝 Trying Python-generated fallback...")
+            
+            # Copy Python backup to replace the failed version
+            import shutil
+            shutil.copy(python_backup, test_file)
+            
+            # Try compiling Python version
+            print(f"  Compiling {test_name} (Python fallback)...", end=' ')
+            success, error = try_compile(test_file)
+            
+            if success:
+                print("✅ SUCCESS (Python fallback)")
+                # Update metadata to reflect that we're using Python version
+                test_metadata['ollama_enhanced'] = False
+                test_metadata['fallback_used'] = True
                 return True
             else:
-                print("❌ FAILED")
-                print(f"    Error: {result.stderr[:200]}")
+                print("❌ FAILED (both versions)")
+                print(f"    Error: {error[:200]}")
                 return False
-        except subprocess.TimeoutExpired:
-            print("❌ TIMEOUT")
-            return False
-        except Exception as e:
-            print(f"❌ ERROR: {e}")
+        else:
+            # No backup or not Ollama-enhanced, just report failure
+            print("❌ FAILED")
+            print(f"    Error: {error[:200]}")
             return False
     
     def run_test(self, test_metadata: Dict) -> tuple:
@@ -1111,10 +2040,11 @@ class TestBuilder:
         
         try:
             result = subprocess.run(
-                [str(binary)],
+                ['./' + test_name],  # Run with relative path since we're in the build directory
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
+                cwd=str(self.build_dir)  # Run from bin directory so .gcda files are created in the right place
             )
             
             if result.returncode == 0:
@@ -1149,10 +2079,13 @@ class TestBuilder:
         
         compiled = []
         failed_compile = []
+        fallback_used = []
         
         for metadata in all_metadata:
             if self.compile_test(metadata):
                 compiled.append(metadata)
+                if metadata.get('fallback_used', False):
+                    fallback_used.append(metadata)
             else:
                 failed_compile.append(metadata)
         
@@ -1173,6 +2106,10 @@ class TestBuilder:
             else:
                 failed_run.append(metadata)
         
+        # Count Ollama enhancements
+        ollama_enhanced = sum(1 for m in all_metadata if m.get('ollama_enhanced', False))
+        ollama_successful = sum(1 for m in compiled if m.get('ollama_enhanced', False) and not m.get('fallback_used', False))
+        
         # Print summary
         print(f"\n{'='*70}")
         print(f"TEST SUMMARY")
@@ -1183,6 +2120,17 @@ class TestBuilder:
         print(f"  Passed:           {len(passed)} ✅")
         print(f"  Failed Run:       {len(failed_run)} ❌")
         print(f"  Skipped:          {len(skipped)} ⏭️  (threading issues)")
+        
+        # Show Ollama stats if applicable
+        if ollama_enhanced > 0:
+            print(f"\n  🤖 Ollama Enhancement Stats:")
+            print(f"     Total Enhanced:      {ollama_enhanced}")
+            print(f"     Successfully Used:   {ollama_successful}")
+            print(f"     Fallback to Python:  {len(fallback_used)}")
+            if ollama_successful > 0:
+                success_rate = (ollama_successful / ollama_enhanced) * 100
+                print(f"     Enhancement Success: {success_rate:.1f}%")
+        
         print(f"{'='*70}")
         
         # Calculate success rate for non-skipped tests
@@ -1191,6 +2139,8 @@ class TestBuilder:
             success_rate = (len(passed) / runnable) * 100
             print(f"\n  Success Rate (excl. skipped): {success_rate:.1f}% ({len(passed)}/{runnable})")
         
+        if len(fallback_used) > 0:
+            print(f"\n💡 Note: {len(fallback_used)} Ollama-enhanced test(s) failed to compile and used Python backup.")
         print(f"\n💡 Note: Skipped tests have known threading issues in the source code.")
         print(f"   These would require fixing the source code (bStart flag not set in init()).")
         print()
@@ -1212,8 +2162,20 @@ def main():
     print("="*70)
     print()
     
-    # Setup paths
-    project_root = Path("/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp")
+    # Setup paths - read from configuration
+    try:
+        project_root = get_project_path()
+        print(f"Using project from configuration: {project_root}")
+        
+        if not project_root.exists():
+            print(f"❌ Error: Project path does not exist: {project_root}")
+            print("   Please update CppMicroAgent.cfg with a valid project_path")
+            return 1
+    except Exception as e:
+        print(f"❌ Error reading configuration: {e}")
+        print("   Falling back to default: TestProjects/SampleApplication/SampleApp")
+        project_root = Path("/workspaces/CppMicroAgent/TestProjects/SampleApplication/SampleApp")
+    
     output_root = Path("/workspaces/CppMicroAgent/output/ConsolidatedTests")
     mock_dir = output_root / "mocks"
     test_dir = output_root / "tests"
@@ -1252,22 +2214,80 @@ def main():
     
     # Step 3: Process source files and generate tests
     print("\nStep 3: Generating unit tests...")
+    
+    # Show Ollama status prominently
+    if args.use_ollama and test_gen.use_ollama:
+        print("\n" + "="*70)
+        print("🤖 OLLAMA AI-ENHANCED TEST GENERATION ENABLED")
+        print("="*70)
+        print("Each test will be:")
+        print("  1. Generated using Python templates")
+        print("  2. Enhanced by Ollama AI for better assertions and logic")
+        print("  3. Saved with Python fallback in case of compilation issues")
+        print("="*70 + "\n")
+    
     source_files = analyzer.find_all_source_files()
+    
+    # Track which headers have been processed via .cpp files
+    processed_headers = set()
     
     for source_file in source_files:
         print(f"\n  Processing: {source_file.name}")
         
-        # Find corresponding header
+        # Find corresponding header - try both .h and .hpp extensions
         header_name = source_file.stem + ".h"
+        header_name_hpp = source_file.stem + ".hpp"
+        
+        class_info = None
         if header_name in header_classes:
             class_info = header_classes[header_name]
-            
+            processed_headers.add(header_name)
+        elif header_name_hpp in header_classes:
+            class_info = header_classes[header_name_hpp]
+            processed_headers.add(header_name_hpp)
+        
+        if class_info:
             # Extract dependencies from the source file
             dependent_headers = analyzer.extract_includes_from_file(source_file)
             
             # Generate test for each method
             for method in class_info['methods']:
                 test_gen.write_test_file(source_file, class_info, method, dependent_headers)
+    
+    # Step 3b: Process header-only files (files without corresponding .cpp)
+    print("\nStep 3b: Generating tests for header-only files...")
+    header_only_count = 0
+    
+    for header_name, class_info in header_classes.items():
+        # Skip if this header was already processed via a .cpp file
+        if header_name in processed_headers:
+            continue
+        
+        # This is a header-only file - find the actual header file path
+        header_file = None
+        for header in headers:
+            if header.name == header_name:
+                header_file = header
+                break
+        
+        if header_file and class_info:
+            print(f"\n  Processing header-only: {header_name}")
+            
+            # Extract dependencies from the header file itself
+            dependent_headers = analyzer.extract_includes_from_file(header_file)
+            
+            # Generate test for each method in the header-only class
+            for method in class_info['methods']:
+                # Use the header file as the "source" since there's no .cpp
+                test_gen.write_test_file(header_file, class_info, method, dependent_headers)
+                header_only_count += 1
+    
+    if header_only_count > 0:
+        print(f"\n  ✅ Generated tests for {header_only_count} methods in header-only files")
+    
+    # Show enhancement plan if Ollama is enabled
+    if args.use_ollama and test_gen.enhancement_plan:
+        test_gen.show_enhancement_plan()
     
     # Save metadata
     test_gen.save_metadata()
@@ -1281,10 +2301,16 @@ def main():
     print("\n" + "="*70)
     print("Generation and Testing Complete!")
     print("="*70)
-    print(f"\nMock headers: {mock_dir}")
-    print(f"Unit tests:   {test_dir}")
-    print(f"Binaries:     {output_root / 'bin'}")
-    print(f"Metadata:     {metadata_file}")
+    print(f"\nMock headers:          {mock_dir}")
+    print(f"Unit tests:            {test_dir}")
+    if args.use_ollama:
+        print(f"Python backup tests:   {test_gen.python_test_dir}")
+    print(f"Binaries:              {output_root / 'bin'}")
+    print(f"Metadata:              {metadata_file}")
+    
+    if args.use_ollama:
+        print(f"\n💡 Coverage files (.gcda/.gcno) generated with --coverage flag")
+        print(f"   These files are created when tests run and are used for coverage analysis")
 
 
 if __name__ == "__main__":

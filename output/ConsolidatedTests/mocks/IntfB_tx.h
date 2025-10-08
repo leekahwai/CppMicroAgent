@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <string>
+#include "common.h"
 
 class IntfB_Tx {
 public:

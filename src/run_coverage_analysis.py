@@ -123,15 +123,35 @@ def generate_coverage_report():
     # Point to the bin directory where .gcda files are located
     bin_dir = "output/ConsolidatedTests/bin"
     
+    # Clean up empty .gcda files only (don't validate with gcov as it's slow and error-prone)
+    import glob
+    empty_count = 0
+    for gcda_file in glob.glob(os.path.join(bin_dir, '*.gcda')):
+        if os.path.getsize(gcda_file) == 0:
+            try:
+                os.remove(gcda_file)
+                # Also remove the corresponding .gcno file
+                gcno_file = gcda_file.replace('.gcda', '.gcno')
+                if os.path.exists(gcno_file):
+                    os.remove(gcno_file)
+                empty_count += 1
+            except:
+                pass
+    
+    if empty_count > 0:
+        print(f"  🧹 Removed {empty_count} empty .gcda files")
+    
     # Initialize lcov with error handling for common issues
     try:
         result = subprocess.run([
             'lcov', '--capture',
             '--directory', bin_dir,  # Changed: look in bin directory where .gcda files are
+            '--base-directory', '.',  # Set base directory to current directory
             '--output-file', os.path.join(coverage_dir, 'coverage.info'),
             '--ignore-errors', 'mismatch',  # Ignore line mismatch errors
             '--ignore-errors', 'source',     # Ignore missing source files
             '--ignore-errors', 'gcov',       # Ignore gcov errors
+            '--ignore-errors', 'empty',      # Ignore empty files
             '--rc', 'geninfo_unexecuted_blocks=1'  # Set unexecuted blocks to zero
         ], capture_output=True, text=True)
         
@@ -144,7 +164,22 @@ def generate_coverage_report():
         if not os.path.exists(coverage_file) or os.path.getsize(coverage_file) == 0:
             print(f"❌ No coverage data was collected.")
             print("   Make sure tests were compiled with --coverage flag and executed.")
+            print(f"   Debug: Check if .gcda files exist in {bin_dir}")
             return False
+        
+        # Filter coverage to only include project source files (not system headers or test files)
+        filtered_file = os.path.join(coverage_dir, 'coverage_filtered.info')
+        result = subprocess.run([
+            'lcov',
+            '--extract', coverage_file,
+            '*/TestProjects/*/src/*',  # Only include project source files
+            '--output-file', filtered_file,
+            '--ignore-errors', 'source'
+        ], capture_output=True, text=True)
+        
+        # Use filtered file if it has content, otherwise use original
+        if os.path.exists(filtered_file) and os.path.getsize(filtered_file) > 0:
+            coverage_file = filtered_file
         
         # Generate HTML report
         html_dir = os.path.join(coverage_dir, 'lcov_html')
@@ -161,6 +196,42 @@ def generate_coverage_report():
         print(f"✅ Coverage report generated:")
         print(f"   HTML: {html_dir}/index.html")
         print(f"   Data: {coverage_file}")
+        
+        # Generate text coverage report
+        text_report_file = os.path.join(coverage_dir, 'coverage_report.txt')
+        try:
+            with open(text_report_file, 'w') as f:
+                f.write("="*70 + "\n")
+                f.write("Coverage Analysis Report\n")
+                f.write("="*70 + "\n\n")
+                
+                # Get detailed coverage info
+                summary_result = subprocess.run([
+                    'lcov', '--summary', coverage_file
+                ], capture_output=True, text=True)
+                
+                if summary_result.returncode == 0:
+                    f.write(summary_result.stdout)
+                    f.write("\n")
+                    
+                    # Also get list coverage for each file
+                    list_result = subprocess.run([
+                        'lcov', '--list', coverage_file
+                    ], capture_output=True, text=True)
+                    
+                    if list_result.returncode == 0:
+                        f.write("\nDetailed Coverage by File:\n")
+                        f.write("-"*70 + "\n")
+                        f.write(list_result.stdout)
+                
+                f.write("\n" + "="*70 + "\n")
+                f.write(f"Report generated: {os.path.basename(coverage_file)}\n")
+                f.write(f"HTML report: {html_dir}/index.html\n")
+                f.write("="*70 + "\n")
+            
+            print(f"   Text: {text_report_file}")
+        except Exception as e:
+            print(f"   ⚠️  Could not generate text report: {e}")
         
         # Display coverage summary if available
         try:

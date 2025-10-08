@@ -12,8 +12,6 @@ class IntfB_Rx {
 public:
     IntfB_Rx() {}
     ~IntfB_Rx() {}
-    void addToQueue(structB& data) {
-    }
     bool init() {
         return true;
     }

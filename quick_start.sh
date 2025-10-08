@@ -22,6 +22,50 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Function to read project path from config
+get_project_path() {
+    if [ -f "CppMicroAgent.cfg" ]; then
+        # Extract project_path from config file
+        PROJECT_PATH=$(grep "^project_path=" CppMicroAgent.cfg | cut -d'=' -f2 | tr -d ' \r')
+        if [ -n "$PROJECT_PATH" ]; then
+            echo "$PROJECT_PATH"
+            return 0
+        fi
+    fi
+    # Default fallback
+    echo "TestProjects/SampleApplication/SampleApp"
+}
+
+# Function to list available projects
+list_available_projects() {
+    echo "Available projects:"
+    local i=1
+    for dir in TestProjects/*/; do
+        if [ -d "$dir" ]; then
+            local project_name=$(basename "$dir")
+            # Check if it has source files
+            local src_count=$(find "$dir" -name "*.cpp" -o -name "*.h" 2>/dev/null | wc -l)
+            if [ $src_count -gt 0 ]; then
+                echo "  $i. $project_name ($src_count files)"
+                ((i++))
+            fi
+        fi
+    done
+}
+
+# Function to update project path in config
+update_project_path() {
+    local new_path=$1
+    if [ -f "CppMicroAgent.cfg" ]; then
+        # Use sed to update the project_path line
+        sed -i "s|^project_path=.*|project_path=$new_path|" CppMicroAgent.cfg
+        echo "✅ Updated project_path to: $new_path"
+    else
+        echo "❌ Configuration file not found"
+        return 1
+    fi
+}
+
 # Function to check if command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
@@ -118,6 +162,13 @@ if [ $MISSING -eq 1 ]; then
     exit 1
 fi
 
+# Show current project
+CURRENT_PROJECT=$(get_project_path)
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Current project: $CURRENT_PROJECT"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
 # Menu
 echo "What would you like to do?"
 echo ""
@@ -125,9 +176,10 @@ echo "  1. Generate Unit Tests (Quick, ~30 seconds)"
 echo "  2. Full Coverage Analysis (Requires Option 1 first, ~1-2 minutes)"
 echo "  3. Build Sample Application"
 echo "  4. View Existing Reports"
-echo "  5. Exit"
+echo "  5. Select Project"
+echo "  6. Exit"
 echo ""
-read -p "Enter your choice (1-5): " choice
+read -p "Enter your choice (1-6): " choice
 
 case $choice in
     1)
@@ -135,6 +187,10 @@ case $choice in
         echo "Starting Test Generation..."
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         
+        echo "Removing Consolidated Tests"
+        rm -rf output/ConsolidatedTests/*
+        sleep 2
+
         # Use Ollama only if --ollama flag was specified
         if [ $USE_OLLAMA -eq 1 ]; then
             OLLAMA_AVAILABLE=0
@@ -246,10 +302,26 @@ case $choice in
         
     3)
         echo ""
-        echo "Building Sample Application..."
+        echo "Building Project..."
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         
-        cd TestProjects/SampleApplication/SampleApp
+        CURRENT_PROJECT=$(get_project_path)
+        PROJECT_DIR="$CURRENT_PROJECT"
+        
+        if [ ! -d "$PROJECT_DIR" ]; then
+            echo "❌ Project directory not found: $PROJECT_DIR"
+            exit 1
+        fi
+        
+        cd "$PROJECT_DIR"
+        
+        # Check if CMakeLists.txt exists
+        if [ ! -f "CMakeLists.txt" ]; then
+            echo "❌ CMakeLists.txt not found in $PROJECT_DIR"
+            echo "   This project may not support CMake builds"
+            exit 1
+        fi
+        
         mkdir -p build
         cd build
         
@@ -266,8 +338,12 @@ case $choice in
         echo "✅ Build Complete!"
         echo ""
         echo "🚀 Run the application:"
-        echo "   cd TestProjects/SampleApplication/SampleApp/build"
-        echo "   ./SampleApp"
+        echo "   cd $PROJECT_DIR/build"
+        if [ -f "SampleApp" ]; then
+            echo "   ./SampleApp"
+        else
+            echo "   (Check build directory for executables)"
+        fi
         ;;
         
     4)
@@ -310,12 +386,64 @@ case $choice in
         ;;
         
     5)
+        echo ""
+        echo "Select Project"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        
+        # Build list of available projects
+        projects=()
+        for dir in TestProjects/*/; do
+            if [ -d "$dir" ]; then
+                project_name=$(basename "$dir")
+                # Check if it has a structure (either src/ or source files)
+                if [ -d "$dir/SampleApp" ]; then
+                    projects+=("TestProjects/$project_name/SampleApp")
+                elif [ -d "$dir/src" ] || [ -d "$dir/include" ]; then
+                    projects+=("TestProjects/$project_name")
+                else
+                    # Check for any C++ files
+                    src_count=$(find "$dir" -maxdepth 1 -name "*.cpp" -o -name "*.h" 2>/dev/null | wc -l)
+                    if [ $src_count -gt 0 ]; then
+                        projects+=("TestProjects/$project_name")
+                    fi
+                fi
+            fi
+        done
+        
+        if [ ${#projects[@]} -eq 0 ]; then
+            echo "❌ No valid projects found in TestProjects/"
+            exit 1
+        fi
+        
+        echo "Available projects:"
+        for i in "${!projects[@]}"; do
+            echo "  $((i+1)). ${projects[$i]}"
+        done
+        echo ""
+        
+        read -p "Select project (1-${#projects[@]}): " proj_choice
+        
+        if [[ "$proj_choice" -ge 1 && "$proj_choice" -le ${#projects[@]} ]]; then
+            selected_project="${projects[$((proj_choice-1))]}"
+            update_project_path "$selected_project"
+            echo ""
+            echo "✅ Project selected: $selected_project"
+            echo ""
+            echo "You can now run Option 1 or 2 to work with this project."
+        else
+            echo "❌ Invalid selection"
+            exit 1
+        fi
+        ;;
+        
+    6)
         echo "Goodbye! 👋"
         exit 0
         ;;
         
     *)
-        echo "Invalid choice. Please run again and select 1-5."
+        echo "Invalid choice. Please run again and select 1-6."
         exit 1
         ;;
 esac
