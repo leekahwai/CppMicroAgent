@@ -94,16 +94,35 @@ class HeaderAnalyzer:
         """Find all .cpp source files"""
         cpp_files = []
         for ext in ['*.cpp']:
-            cpp_files.extend(self.source_dir.rglob(ext))
+            # First try the src directory
+            if self.source_dir.exists():
+                cpp_files.extend(self.source_dir.rglob(ext))
+            # If no files found or src dir doesn't exist, search project root
+            if not cpp_files:
+                for cpp_file in self.project_root.glob(ext):
+                    # Skip test files and contrib directories
+                    if 'test' not in cpp_file.name.lower() and 'contrib' not in str(cpp_file):
+                        cpp_files.append(cpp_file)
         return cpp_files
     
     def find_all_headers(self) -> List[Path]:
         """Find all .h and .hpp header files"""
         headers = []
+        # Try src and inc directories first
         for directory in [self.source_dir, self.include_dir]:
             if directory.exists():
                 headers.extend(directory.rglob('*.h'))
                 headers.extend(directory.rglob('*.hpp'))
+        # If no headers found, search project root
+        if not headers:
+            for h_file in self.project_root.glob('*.h'):
+                # Skip test files and contrib directories
+                if 'test' not in h_file.name.lower() and 'contrib' not in str(h_file):
+                    headers.append(h_file)
+            for hpp_file in self.project_root.glob('*.hpp'):
+                # Skip test files and contrib directories  
+                if 'test' not in hpp_file.name.lower() and 'contrib' not in str(hpp_file):
+                    headers.append(hpp_file)
         return headers
     
     def extract_includes_from_file(self, file_path: Path) -> Set[str]:
@@ -123,59 +142,119 @@ class HeaderAnalyzer:
             print(f"Error reading {file_path}: {e}")
         return includes
     
-    def parse_class_from_header(self, header_path: Path) -> Dict:
-        """Parse class information from header file"""
+    def parse_classes_from_header(self, header_path: Path) -> List[Dict]:
+        """Parse ALL class information from header file - enhanced for complex headers with multiple classes"""
         try:
             with open(header_path, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
             
-            # Find class name
-            class_match = re.search(r'class\s+(\w+)\s*{', content)
-            if not class_match:
+            # Remove comments to avoid false matches
+            content_no_comments = re.sub(r'//.*?$', '', content, flags=re.MULTILINE)
+            content_no_comments = re.sub(r'/\*.*?\*/', '', content_no_comments, flags=re.DOTALL)
+            
+            # Find all classes in the file (handle multiple classes)
+            # Pattern handles: class ClassName, class MACRO ClassName, class ClassName : public Base
+            class_pattern = r'class\s+(?:\w+\s+)?(\w+)(?:\s*:\s*(?:public|protected|private)\s+\w+(?:\s*,\s*(?:public|protected|private)\s+\w+)*)?\s*\{'
+            class_matches = list(re.finditer(class_pattern, content_no_comments))
+            
+            if not class_matches:
+                return []
+            
+            all_classes = []
+            
+            # Parse each substantial class
+            for match in class_matches:
+                class_name = match.group(1)
+                class_start = match.start()
+                start_pos = match.end()
+                
+                # Check if this is a real class definition (has some content after {)
+                next_100_chars = content_no_comments[start_pos:start_pos+100]
+                if not next_100_chars.strip() or next_100_chars.strip().startswith('};'):
+                    continue  # Skip forward declarations or empty classes
+                
+                class_info = self._parse_single_class(content, content_no_comments, class_name, class_start, header_path)
+                if class_info and class_info['methods']:
+                    all_classes.append(class_info)
+            
+            return all_classes
+        except Exception as e:
+            print(f"Error parsing {header_path}: {e}")
+            return []
+    
+    def _parse_single_class(self, original_content: str, content: str, class_name: str, class_start: int, header_path: Path) -> Dict:
+        """Parse a single class from the header"""
+        try:
+            # Find the end of this class by balancing braces from class_start
+            class_content_start = content.find('{', class_start)
+            if class_content_start == -1:
                 return None
             
-            class_name = class_match.group(1)
+            # Balance braces to find class end (with safety limit)
+            brace_count = 0
+            class_end = class_content_start
+            max_search = min(class_content_start + 50000, len(content))  # Safety limit
+            
+            for i in range(class_content_start, max_search):
+                char = content[i]
+                if char == '{':
+                    brace_count += 1
+                elif char == '}':
+                    brace_count -= 1
+                    if brace_count == 0:
+                        class_end = i
+                        break
+            
+            if brace_count != 0:
+                # Couldn't find matching brace, use next class or end
+                next_class = content.find('class ', class_content_start + 1)
+                if next_class > 0:
+                    class_end = next_class
+                else:
+                    class_end = max_search
+            
+            # Extract just this class's content
+            class_content = content[class_start:class_end+1]
             
             # Extract methods
             methods = []
             
-            # Find public methods
-            public_section = re.search(r'public:\s*(.*?)(?:private:|protected:|};)', content, re.DOTALL)
-            if public_section:
-                # First, normalize the public section by removing extra whitespace and newlines in declarations
-                public_text = public_section.group(1)
-                # Merge multi-line declarations into single lines (for parsing purposes)
-                # This handles cases like:
-                #   AssertionHandler
-                #       (   StringRef macroName,
-                #           ...
-                public_text_normalized = re.sub(r'\s+', ' ', public_text)
+            # Find public methods - look for content between public: and next access specifier or class end
+            # Use positive lookahead to get all public sections (there might be multiple)
+            public_sections = []
+            for match in re.finditer(r'public:\s*(.*?)(?=private:|protected:|$|\};)', class_content, re.DOTALL):
+                public_sections.append(match.group(1))
+            
+            for public_text in public_sections:
+                # Simple approach: remove inline implementations using regex
+                # Match patterns like: method() { ... } or method() override { ... }
+                public_text_cleaned = re.sub(r'\{[^{}]*\}', '', public_text)
+                # Handle nested braces (run twice for safety)
+                public_text_cleaned = re.sub(r'\{[^{}]*\}', '', public_text_cleaned)
                 
-                # Pattern for constructors: ClassName ( params ) ;
-                constructor_pattern = rf'{class_name}\s*\((.*?)\)\s*;'
-                # Pattern for destructors: ~ClassName ( ) ;
-                destructor_pattern = rf'~{class_name}\s*\(\s*\)\s*(?:{{[^}}]*}})?;?'
-                # Pattern for regular methods (now works with normalized single-line text)
-                method_pattern = r'(?:virtual\s+)?(?:static\s+)?(\w+(?:\s*\*|\s*&)?)\s+(\w+)\s*\((.*?)\)\s*(?:const)?(?:override)?(?:=\s*0)?;'
-                # Pattern for auto return type methods: auto method() -> type;
-                auto_pattern = r'auto\s+(\w+)\s*\((.*?)\)\s*->\s*(\w+(?:\s*\*|\s*&)?)\s*;'
+                # Now normalize whitespace
+                public_text_normalized = re.sub(r'\s+', ' ', public_text_cleaned)
                 
-                # Find constructors first
+                # Enhanced method patterns that handle more cases
+                # Pattern for constructors: ClassName ( params ) optional-specifiers ;
+                constructor_pattern = rf'{class_name}\s*\(([^)]*)\)\s*(?::|;)'
+                
+                # Pattern for destructors
+                destructor_pattern = rf'~{class_name}\s*\(\s*\)\s*(?:{{|;|override)'
+                
+                # Enhanced pattern for regular methods
+                # Handles: [virtual] [static] [explicit] [inline] return_type method_name ( params ) [const] [override] [= 0] ;
+                method_pattern = r'(?:virtual\s+)?(?:static\s+)?(?:explicit\s+)?(?:inline\s+)?(\w+(?:\s*\*|\s*&|\s*<[^>]+>)?)\s+(\w+)\s*\(([^)]*)\)\s*(?:const\s*)?(?:override\s*)?(?:=\s*0\s*)?(?:;|{)'
+                
+                # Pattern for auto return type methods
+                auto_pattern = r'auto\s+(\w+)\s*\(([^)]*)\)\s*(?:const\s*)?->\s*(\w+(?:\s*\*|\s*&)?)\s*(?:;|{)'
+                
+                # Find constructors
                 for match in re.finditer(constructor_pattern, public_text_normalized):
                     params = match.group(1).strip()
                     
                     # Parse parameters
-                    param_list = []
-                    if params and params != 'void' and params:
-                        for param in params.split(','):
-                            param = param.strip()
-                            if param:
-                                # Extract type and name
-                                parts = param.rsplit(None, 1)
-                                if len(parts) == 2:
-                                    param_list.append({'type': parts[0], 'name': parts[1]})
-                                else:
-                                    param_list.append({'type': param, 'name': ''})
+                    param_list = self._parse_parameters(params)
                     
                     methods.append({
                         'name': class_name,
@@ -201,25 +280,23 @@ class HeaderAnalyzer:
                     method_name = match.group(2)
                     params = match.group(3).strip()
                     
+                    # Skip if this is actually a constructor (can happen with return type same as class name)
+                    if method_name == class_name:
+                        continue
+                    
+                    # Skip operators for now (they're complex)
+                    if method_name.startswith('operator'):
+                        continue
+                    
                     # Parse parameters
-                    param_list = []
-                    if params and params != 'void':
-                        for param in params.split(','):
-                            param = param.strip()
-                            if param:
-                                # Extract type and name
-                                parts = param.rsplit(None, 1)
-                                if len(parts) == 2:
-                                    param_list.append({'type': parts[0], 'name': parts[1]})
-                                else:
-                                    param_list.append({'type': param, 'name': ''})
+                    param_list = self._parse_parameters(params)
                     
                     methods.append({
                         'name': method_name,
                         'return_type': return_type,
                         'parameters': param_list,
-                        'is_constructor': method_name == class_name,
-                        'is_destructor': method_name == f'~{class_name}'
+                        'is_constructor': False,
+                        'is_destructor': False
                     })
                 
                 # Find auto return type methods
@@ -229,17 +306,7 @@ class HeaderAnalyzer:
                     return_type = match.group(3).strip()
                     
                     # Parse parameters
-                    param_list = []
-                    if params and params != 'void':
-                        for param in params.split(','):
-                            param = param.strip()
-                            if param:
-                                # Extract type and name
-                                parts = param.rsplit(None, 1)
-                                if len(parts) == 2:
-                                    param_list.append({'type': parts[0], 'name': parts[1]})
-                                else:
-                                    param_list.append({'type': param, 'name': ''})
+                    param_list = self._parse_parameters(params)
                     
                     methods.append({
                         'name': method_name,
@@ -249,19 +316,96 @@ class HeaderAnalyzer:
                         'is_destructor': False
                     })
             
+            # Remove duplicate methods (can happen with multiple public sections)
+            seen = set()
+            unique_methods = []
+            for method in methods:
+                method_sig = f"{method['name']}_{len(method['parameters'])}"
+                if method_sig not in seen:
+                    seen.add(method_sig)
+                    unique_methods.append(method)
+            
             # Check if class is abstract (has pure virtual methods)
-            is_abstract = '= 0' in content
+            is_abstract = '= 0' in class_content
             
             return {
                 'class_name': class_name,
-                'methods': methods,
+                'methods': unique_methods,
                 'header_file': header_path.name,
                 'header_full_path': str(header_path),
                 'is_abstract': is_abstract
             }
         except Exception as e:
-            print(f"Error parsing {header_path}: {e}")
+            print(f"Error parsing class {class_name} in {header_path}: {e}")
             return None
+    
+    def _parse_parameters(self, params_str: str) -> list:
+        """Helper method to parse parameter list from a string"""
+        param_list = []
+        if not params_str or params_str.strip() == 'void':
+            return param_list
+        
+        # Handle parameters - split by comma but be careful of template parameters
+        params = []
+        current_param = []
+        angle_bracket_depth = 0
+        paren_depth = 0
+        
+        for char in params_str + ',':
+            if char == '<':
+                angle_bracket_depth += 1
+                current_param.append(char)
+            elif char == '>':
+                angle_bracket_depth -= 1
+                current_param.append(char)
+            elif char == '(':
+                paren_depth += 1
+                current_param.append(char)
+            elif char == ')':
+                paren_depth -= 1
+                current_param.append(char)
+            elif char == ',' and angle_bracket_depth == 0 and paren_depth == 0:
+                if current_param:
+                    params.append(''.join(current_param).strip())
+                    current_param = []
+            else:
+                current_param.append(char)
+        
+        for param in params:
+            param = param.strip()
+            if param:
+                # Remove default values
+                if '=' in param:
+                    param = param.split('=')[0].strip()
+                
+                # Extract type and name - name is last token
+                parts = param.split()
+                if len(parts) >= 2:
+                    # Last part is name, rest is type
+                    name = parts[-1]
+                    type_str = ' '.join(parts[:-1])
+                    param_list.append({'type': type_str, 'name': name})
+                elif len(parts) == 1:
+                    # Just type, no name
+                    param_list.append({'type': param, 'name': ''})
+        
+        return param_list
+    
+    def parse_class_from_header(self, header_path: Path) -> Dict:
+        """Parse class information from header file - backward compatibility wrapper
+        Returns the first/best class found, or dict with list of classes"""
+        classes = self.parse_classes_from_header(header_path)
+        if not classes:
+            return None
+        
+        # Return the first class with most methods as the "main" class
+        # This prioritizes more complete/important classes
+        best_class = max(classes, key=lambda c: len(c['methods']))
+        
+        # Also add all classes to the result for multi-class support
+        result = best_class.copy()
+        result['classes'] = classes
+        return result
 
 
 class MockGenerator:
@@ -2195,14 +2339,17 @@ def main():
     header_classes = {}
     
     for header in headers:
-        class_info = analyzer.parse_class_from_header(header)
-        if class_info:
-            header_classes[header.name] = class_info
-            print(f"  Found class: {class_info['class_name']} in {header.name}")
+        classes = analyzer.parse_classes_from_header(header)
+        if classes:
+            # Store all classes from this header - use tuple of (header_name, class_name) as key
+            for class_info in classes:
+                key = (header.name, class_info['class_name'])
+                header_classes[key] = class_info
+                print(f"  Found class: {class_info['class_name']} in {header.name}")
     
     # Step 2: Generate consolidated mocks
     print("\nStep 2: Generating consolidated mock headers...")
-    for header_name, class_info in header_classes.items():
+    for (header_name, class_name), class_info in header_classes.items():
         mock_gen.write_mock_header(class_info)
     
     # Copy common.h if it exists
@@ -2228,8 +2375,8 @@ def main():
     
     source_files = analyzer.find_all_source_files()
     
-    # Track which headers have been processed via .cpp files
-    processed_headers = set()
+    # Track which (header, class) combinations have been processed via .cpp files
+    processed_classes = set()
     
     for source_file in source_files:
         print(f"\n  Processing: {source_file.name}")
@@ -2238,29 +2385,30 @@ def main():
         header_name = source_file.stem + ".h"
         header_name_hpp = source_file.stem + ".hpp"
         
-        class_info = None
-        if header_name in header_classes:
-            class_info = header_classes[header_name]
-            processed_headers.add(header_name)
-        elif header_name_hpp in header_classes:
-            class_info = header_classes[header_name_hpp]
-            processed_headers.add(header_name_hpp)
+        # Find all classes in this header that match the source file
+        matching_classes = []
+        for (h_name, c_name), class_info in header_classes.items():
+            if h_name == header_name or h_name == header_name_hpp:
+                matching_classes.append(((h_name, c_name), class_info))
         
-        if class_info:
+        for (h_name, c_name), class_info in matching_classes:
             # Extract dependencies from the source file
             dependent_headers = analyzer.extract_includes_from_file(source_file)
             
             # Generate test for each method
             for method in class_info['methods']:
                 test_gen.write_test_file(source_file, class_info, method, dependent_headers)
+            
+            # Mark this class as processed
+            processed_classes.add((h_name, c_name))
     
     # Step 3b: Process header-only files (files without corresponding .cpp)
     print("\nStep 3b: Generating tests for header-only files...")
     header_only_count = 0
     
-    for header_name, class_info in header_classes.items():
-        # Skip if this header was already processed via a .cpp file
-        if header_name in processed_headers:
+    for (header_name, class_name), class_info in header_classes.items():
+        # Skip if this class was already processed via a .cpp file
+        if (header_name, class_name) in processed_classes:
             continue
         
         # This is a header-only file - find the actual header file path
@@ -2271,7 +2419,7 @@ def main():
                 break
         
         if header_file and class_info:
-            print(f"\n  Processing header-only: {header_name}")
+            print(f"\n  Processing header-only: {class_name} from {header_name}")
             
             # Extract dependencies from the header file itself
             dependent_headers = analyzer.extract_includes_from_file(header_file)

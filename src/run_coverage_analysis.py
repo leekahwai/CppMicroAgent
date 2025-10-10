@@ -14,6 +14,10 @@ import subprocess
 import json
 from pathlib import Path
 
+# Add src directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
+from config_reader import get_project_path
+
 def check_prerequisites():
     """Check if required tools are installed"""
     required = ['g++', 'gcov', 'lcov']
@@ -64,10 +68,13 @@ def run_tests_with_coverage():
     coverage_dir = "output/UnitTestCoverage"
     os.makedirs(coverage_dir, exist_ok=True)
     
-    # Find all test executables
+    # Find all test executables (exclude .gcno and .gcda files)
     test_executables = []
     for file in os.listdir(bin_dir):
         file_path = os.path.join(bin_dir, file)
+        # Skip coverage files
+        if file.endswith('.gcno') or file.endswith('.gcda'):
+            continue
         if os.path.isfile(file_path) and os.access(file_path, os.X_OK):
             test_executables.append(file)  # Just store the filename, not full path
     
@@ -79,11 +86,19 @@ def run_tests_with_coverage():
     
     # Clean up old coverage data to ensure fresh results
     import glob
-    for gcda_file in glob.glob(os.path.join(bin_dir, '*.gcda')):
-        try:
-            os.remove(gcda_file)
-        except:
-            pass
+    gcda_files = glob.glob(os.path.join(bin_dir, '*.gcda'))
+    if gcda_files:
+        print(f"  🧹 Cleaning up {len(gcda_files)} old .gcda files...")
+        removed_count = 0
+        for gcda_file in gcda_files:
+            try:
+                os.remove(gcda_file)
+                removed_count += 1
+            except Exception as e:
+                print(f"  ⚠️  Failed to remove {gcda_file}: {e}")
+        print(f"  ✅ Removed {removed_count} old .gcda files")
+    else:
+        print("  ℹ️  No old .gcda files to clean up")
     
     # Run each test from the bin directory so .gcda files are created in the right place
     passed = 0
@@ -111,6 +126,16 @@ def run_tests_with_coverage():
             print(f"  ❌ {test_name} ({e})")
     
     print(f"\nTest Results: {passed} passed, {failed} failed")
+    
+    # Verify that new .gcda files were created
+    new_gcda_files = glob.glob(os.path.join(bin_dir, '*.gcda'))
+    if new_gcda_files:
+        print(f"✅ Generated {len(new_gcda_files)} new .gcda coverage files")
+    else:
+        print("⚠️  Warning: No .gcda files were generated!")
+        print("   This may indicate tests didn't run or weren't compiled with --coverage flag")
+        return False
+    
     return True
 
 def generate_coverage_report():
@@ -123,10 +148,20 @@ def generate_coverage_report():
     # Point to the bin directory where .gcda files are located
     bin_dir = "output/ConsolidatedTests/bin"
     
-    # Clean up empty .gcda files only (don't validate with gcov as it's slow and error-prone)
+    # Verify .gcda files exist before proceeding
     import glob
+    gcda_files = glob.glob(os.path.join(bin_dir, '*.gcda'))
+    if not gcda_files:
+        print("❌ No .gcda coverage files found!")
+        print("   Tests must be run first to generate coverage data.")
+        print("   Make sure tests are compiled with --coverage flag and executed successfully.")
+        return False
+    
+    print(f"  📁 Found {len(gcda_files)} .gcda coverage files to process")
+    
+    # Clean up empty .gcda files only (don't validate with gcov as it's slow and error-prone)
     empty_count = 0
-    for gcda_file in glob.glob(os.path.join(bin_dir, '*.gcda')):
+    for gcda_file in gcda_files[:]:  # Use slice to avoid modifying list while iterating
         if os.path.getsize(gcda_file) == 0:
             try:
                 os.remove(gcda_file)
@@ -135,11 +170,13 @@ def generate_coverage_report():
                 if os.path.exists(gcno_file):
                     os.remove(gcno_file)
                 empty_count += 1
+                gcda_files.remove(gcda_file)
             except:
                 pass
     
     if empty_count > 0:
         print(f"  🧹 Removed {empty_count} empty .gcda files")
+        print(f"  📁 {len(gcda_files) - empty_count} valid .gcda files remaining")
     
     # Initialize lcov with error handling for common issues
     try:
@@ -167,19 +204,45 @@ def generate_coverage_report():
             print(f"   Debug: Check if .gcda files exist in {bin_dir}")
             return False
         
-        # Filter coverage to only include project source files (not system headers or test files)
+        # Get the current project path to filter coverage correctly
+        project_path = get_project_path()
+        project_full_path = str(os.path.abspath(project_path))
+        print(f"  📂 Filtering coverage for project: {project_path}")
+        
+        # Filter coverage to only include the current project's source files (not system headers or test files)
         filtered_file = os.path.join(coverage_dir, 'coverage_filtered.info')
+        
+        # Remove old filtered file to avoid using stale data
+        if os.path.exists(filtered_file):
+            os.remove(filtered_file)
+        
+        # Try multiple patterns to handle different project structures
+        # Pattern 1: Projects with src/ subdirectory (e.g., SampleApp/src/)
+        # Pattern 2: Projects with files at root (e.g., tinyxml2/*.cpp)
+        filter_patterns = [
+            f'{project_full_path}/*',  # All files in project directory
+        ]
+        
         result = subprocess.run([
             'lcov',
             '--extract', coverage_file,
-            '*/TestProjects/*/src/*',  # Only include project source files
+            *filter_patterns,  # Extract files matching any of these patterns
             '--output-file', filtered_file,
             '--ignore-errors', 'source'
         ], capture_output=True, text=True)
         
         # Use filtered file if it has content, otherwise use original
         if os.path.exists(filtered_file) and os.path.getsize(filtered_file) > 0:
-            coverage_file = filtered_file
+            # Verify the filtered file actually has the right project
+            with open(filtered_file, 'r') as f:
+                filtered_content = f.read()
+                if project_full_path in filtered_content:
+                    coverage_file = filtered_file
+                    print(f"  ✅ Filtered to {project_path} source files only")
+                else:
+                    print(f"  ⚠️  Filter didn't match project files, using full coverage data")
+        else:
+            print(f"  ⚠️  No project files found in coverage, using full coverage data")
         
         # Generate HTML report
         html_dir = os.path.join(coverage_dir, 'lcov_html')
