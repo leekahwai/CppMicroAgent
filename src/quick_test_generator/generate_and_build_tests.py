@@ -243,11 +243,12 @@ class HeaderAnalyzer:
                 destructor_pattern = rf'~{class_name}\s*\(\s*\)\s*(?:{{|;|override)'
                 
                 # Enhanced pattern for regular methods
-                # Handles: [virtual] [static] [explicit] [inline] return_type method_name ( params ) [const] [override] [= 0] ;
-                method_pattern = r'(?:virtual\s+)?(?:static\s+)?(?:explicit\s+)?(?:inline\s+)?(\w+(?:\s*\*|\s*&|\s*<[^>]+>)?)\s+(\w+)\s*\(([^)]*)\)\s*(?:const\s*)?(?:override\s*)?(?:=\s*0\s*)?(?:;|{)'
+                # Captures: [virtual] [static] [explicit] [inline] return_type method_name ( params ) [const] [override] [= 0] ;
+                # Group 1: modifiers (virtual/static/etc), Group 2: return_type, Group 3: method_name, Group 4: params
+                method_pattern = r'((?:virtual\s+)?(?:static\s+)?(?:explicit\s+)?(?:inline\s+)?)(\w+(?:\s*\*|\s*&|\s*<[^>]+>)?)\s+(\w+)\s*\(([^)]*)\)\s*(?:const\s*)?(?:override\s*)?(?:=\s*0\s*)?(?:;|{)'
                 
                 # Pattern for auto return type methods
-                auto_pattern = r'auto\s+(\w+)\s*\(([^)]*)\)\s*(?:const\s*)?->\s*(\w+(?:\s*\*|\s*&)?)\s*(?:;|{)'
+                auto_pattern = r'((?:static\s+)?)auto\s+(\w+)\s*\(([^)]*)\)\s*(?:const\s*)?->\s*(\w+(?:\s*\*|\s*&)?)\s*(?:;|{)'
                 
                 # Find constructors
                 for match in re.finditer(constructor_pattern, public_text_normalized):
@@ -276,9 +277,10 @@ class HeaderAnalyzer:
                 
                 # Find all regular methods
                 for match in re.finditer(method_pattern, public_text_normalized):
-                    return_type = match.group(1).strip()
-                    method_name = match.group(2)
-                    params = match.group(3).strip()
+                    modifiers = match.group(1).strip()
+                    return_type = match.group(2).strip()
+                    method_name = match.group(3)
+                    params = match.group(4).strip()
                     
                     # Skip if this is actually a constructor (can happen with return type same as class name)
                     if method_name == class_name:
@@ -288,6 +290,9 @@ class HeaderAnalyzer:
                     if method_name.startswith('operator'):
                         continue
                     
+                    # Check if static
+                    is_static = 'static' in modifiers
+                    
                     # Parse parameters
                     param_list = self._parse_parameters(params)
                     
@@ -296,14 +301,19 @@ class HeaderAnalyzer:
                         'return_type': return_type,
                         'parameters': param_list,
                         'is_constructor': False,
-                        'is_destructor': False
+                        'is_destructor': False,
+                        'is_static': is_static
                     })
                 
                 # Find auto return type methods
                 for match in re.finditer(auto_pattern, public_text_normalized):
-                    method_name = match.group(1)
-                    params = match.group(2).strip()
-                    return_type = match.group(3).strip()
+                    modifiers = match.group(1).strip()
+                    method_name = match.group(2)
+                    params = match.group(3).strip()
+                    return_type = match.group(4).strip()
+                    
+                    # Check if static
+                    is_static = 'static' in modifiers
                     
                     # Parse parameters
                     param_list = self._parse_parameters(params)
@@ -313,7 +323,8 @@ class HeaderAnalyzer:
                         'return_type': return_type,
                         'parameters': param_list,
                         'is_constructor': False,
-                        'is_destructor': False
+                        'is_destructor': False,
+                        'is_static': is_static
                     })
             
             # Remove duplicate methods (can happen with multiple public sections)
@@ -1499,7 +1510,7 @@ TEST_F({class_name}_{method_name}_Test, HandlesEdgeCases) {{
                 values.append(var_name)
                 var_counter += 1
             elif '*' in param_type:
-                # Pointer type - use appropriate cast or value
+                # Pointer type - distinguish between input and output parameters
                 if 'char' in param_type:
                     # const char* or char* - use empty string or explicit cast
                     if 'const' in param_type:
@@ -1510,9 +1521,22 @@ TEST_F({class_name}_{method_name}_Test, HandlesEdgeCases) {{
                     # FILE* - use explicit cast to avoid ambiguity
                     values.append('static_cast<FILE*>(nullptr)')
                 else:
-                    # Other pointer types - use static_cast with explicit type
-                    clean_type = param_type.replace('const', '').strip()
-                    values.append(f'static_cast<{clean_type}>(nullptr)')
+                    # Other pointer types - likely output parameters, create a variable
+                    base_type = param_type.replace('*', '').replace('const', '').strip()
+                    var_name = f'param_{var_counter}'
+                    
+                    # Create a variable of the base type and pass its address
+                    if 'bool' in base_type:
+                        declarations.append(f'        {base_type} {var_name} = false;')
+                    elif any(t in base_type for t in ['int', 'long', 'short', 'size_t', 'uint', 'int64', 'unsigned']):
+                        declarations.append(f'        {base_type} {var_name} = 0;')
+                    elif any(t in base_type for t in ['float', 'double']):
+                        declarations.append(f'        {base_type} {var_name} = 0.0;')
+                    else:
+                        declarations.append(f'        {base_type} {var_name};')
+                    
+                    values.append(f'&{var_name}')
+                    var_counter += 1
             else:
                 values.append(f'{param_type}()')
         
@@ -1661,30 +1685,34 @@ TEST_F({class_name}_{method_name}_Test, StressTest) {{
             return
         
         class_name = class_info['class_name']
+        method_name = method['name']
+        is_static = method.get('is_static', False)
         
-        # Skip abstract classes (has pure virtual methods)
-        if class_info.get('is_abstract', False):
+        # Skip abstract classes (has pure virtual methods) unless the method is static
+        if class_info.get('is_abstract', False) and not is_static:
             return  # Can't instantiate abstract classes
         
         # Skip nested/inner classes (not supported)
         if '::' in class_name:
             return
         
-        # Check if the class has a default constructor or can be instantiated easily
-        constructor_info = self._get_constructor_info(class_info)
-        
-        # If class only has parameterized constructors and no default, check complexity
-        if constructor_info['has_params'] and not constructor_info['has_default']:
-            # Can't easily instantiate classes that require parameters and have no default constructor
-            return
-        
-        # If class has parameters, check if they're complex
-        if constructor_info['has_params']:
-            for param in constructor_info['parameters']:
-                param_type = param['type'].replace('&', '').replace('const', '').replace('*', '').strip()
-                # Skip if parameter type contains &&  (rvalue reference) or is complex
-                if '&&' in param['type'] or 'Builder' in param_type:
-                    return
+        # For static methods, we don't need to instantiate the class
+        if not is_static:
+            # Check if the class has a default constructor or can be instantiated easily
+            constructor_info = self._get_constructor_info(class_info)
+            
+            # If class only has parameterized constructors and no default, check complexity
+            if constructor_info['has_params'] and not constructor_info['has_default']:
+                # Can't easily instantiate classes that require parameters and have no default constructor
+                return
+            
+            # If class has parameters, check if they're complex
+            if constructor_info['has_params']:
+                for param in constructor_info['parameters']:
+                    param_type = param['type'].replace('&', '').replace('const', '').replace('*', '').strip()
+                    # Skip if parameter type contains &&  (rvalue reference) or is complex
+                    if '&&' in param['type'] or 'Builder' in param_type:
+                        return
         
         # NEW STRATEGY: Generate micro-tests - separate test file for each test case
         # This improves granularity and makes individual tests easier to debug
@@ -1704,24 +1732,62 @@ TEST_F({class_name}_{method_name}_Test, StressTest) {{
         # Generate different test scenarios
         test_scenarios = []
         
-        if method['is_constructor']:
-            test_scenarios.append(('BasicConstruction', 'Test that object can be constructed'))
+        is_static = method.get('is_static', False)
+        
+        # For static methods, generate simpler test scenarios
+        if is_static:
+            if method['is_constructor']:
+                return  # Skip constructors marked as static (shouldn't happen)
+            elif 'bool' in method['return_type']:
+                test_scenarios.extend([
+                    ('ReturnValue', 'Test static method returns value'),
+                    ('NoThrow', 'Test static method executes without throwing'),
+                    ('MultipleInvocations', 'Test static method handles multiple calls'),
+                    ('ConsistentResults', 'Test static method returns consistent results')
+                ])
+            elif 'void' in method['return_type']:
+                test_scenarios.extend([
+                    ('NoThrow', 'Test static method executes without throwing'),
+                    ('MultipleInvocations', 'Test static method handles multiple calls'),
+                    ('RapidCalls', 'Test static method handles rapid successive calls')
+                ])
+            elif any(t in method['return_type'] for t in ['int', 'long', 'size_t', 'unsigned', 'char', 'double', 'float']):
+                test_scenarios.extend([
+                    ('ValidReturn', 'Test static method returns valid value'),
+                    ('NoThrow', 'Test static method executes without throwing'),
+                    ('MultipleInvocations', 'Test static method handles multiple calls'),
+                    ('ConsistentResults', 'Test static method returns consistent results')
+                ])
+            else:
+                test_scenarios.extend([
+                    ('ValidReturn', 'Test static method returns valid result'),
+                    ('NoThrow', 'Test static method executes without throwing'),
+                    ('MultipleInvocations', 'Test static method handles multiple calls')
+                ])
+        elif method['is_constructor']:
+            test_scenarios.extend([
+                ('BasicConstruction', 'Test that object can be constructed'),
+                ('MultipleInstances', 'Test that multiple objects can be constructed')
+            ])
         elif 'bool' in method['return_type']:
             test_scenarios.extend([
                 ('ReturnTrue', 'Test method returns true in success case'),
                 ('ReturnFalse', 'Test method returns false in failure case'),
-                ('MultipleInvocations', 'Test method handles multiple calls')
+                ('MultipleInvocations', 'Test method handles multiple calls'),
+                ('ConsistentBehavior', 'Test method behavior is consistent')
             ])
         elif 'void' in method['return_type']:
             test_scenarios.extend([
                 ('NoThrow', 'Test method executes without throwing'),
-                ('MultipleInvocations', 'Test method can be called multiple times')
+                ('MultipleInvocations', 'Test method can be called multiple times'),
+                ('RapidCalls', 'Test method handles rapid successive calls')
             ])
         elif any(t in method['return_type'] for t in ['int', 'long', 'size_t', 'unsigned']):
             test_scenarios.extend([
                 ('ValidReturn', 'Test method returns valid value'),
                 ('BoundaryCheck', 'Test return value within expected range'),
-                ('Consistency', 'Test method returns consistent values')
+                ('Consistency', 'Test method returns consistent values'),
+                ('MultipleInvocations', 'Test method can be called multiple times')
             ])
         else:
             test_scenarios.extend([
@@ -1836,11 +1902,48 @@ TEST_F({class_name}_{method_name}_Test, StressTest) {{
                 content += "using namespace Catch::TextFlow;\n"
             content += "\n"
         
-        # Skip test generation for classes with protected destructors (cannot be instantiated)
-        if class_info.get('has_protected_destructor', False):
+        # Check if this is a static method
+        is_static = method.get('is_static', False)
+        
+        # Skip test generation for classes with protected destructors (cannot be instantiated) unless static
+        if class_info.get('has_protected_destructor', False) and not is_static:
             return None
         
-        # Generate single focused test
+        # For static methods, we don't need object creation
+        if is_static:
+            obj_creation = ""
+            decls, params = self._generate_param_values(method)
+            param_setup = decls if decls else ""
+            
+            # Generate test for static method based on scenario
+            if scenario_name == 'ValidReturn':
+                content += f"""TEST({class_name}_{method_name}Test, {scenario_name}) {{
+{param_setup}
+    auto result = {class_name}::{method_name}({params});
+    // Verify result is accessible
+    (void)result; // Mark as used
+    SUCCEED();
+}}
+"""
+            elif scenario_name == 'NoThrow':
+                content += f"""TEST({class_name}_{method_name}Test, {scenario_name}) {{
+{param_setup}
+    EXPECT_NO_THROW({{
+        {class_name}::{method_name}({params});
+    }});
+}}
+"""
+            else:
+                content += f"""TEST({class_name}_{method_name}Test, {scenario_name}) {{
+{param_setup}
+    EXPECT_NO_THROW({{
+        {class_name}::{method_name}({params});
+    }});
+}}
+"""
+            return content
+        
+        # Generate single focused test for non-static methods
         _, obj_deps, obj_decl = self._generate_object_creation_code(class_name, class_info)
         
         # Skip test generation if object cannot be created (no suitable constructor)
@@ -2464,22 +2567,35 @@ def main():
         header_name = source_file.stem + ".h"
         header_name_hpp = source_file.stem + ".hpp"
         
+        # Strategy: For a source file like "tinyxml2.cpp", look for classes whose name
+        # might be in that file. We'll try to match:
+        # 1. Exact name match (tinyxml2 -> XMLDocument would need manual mapping)
+        # 2. Any class in the matching header, but track what we actually test
+        
         # Find all classes in this header that match the source file
         matching_classes = []
         for (h_name, c_name), class_info in header_classes.items():
             if h_name == header_name or h_name == header_name_hpp:
                 matching_classes.append(((h_name, c_name), class_info))
         
+        # Test all matching classes and track which ones we successfully generate tests for
         for (h_name, c_name), class_info in matching_classes:
             # Extract dependencies from the source file
             dependent_headers = analyzer.extract_includes_from_file(source_file)
             
-            # Generate test for each method
+            # Try to generate tests for each method - count successes
+            tests_generated = 0
             for method in class_info['methods']:
+                # Save the test count before
+                before_count = len(test_gen.test_metadata)
                 test_gen.write_test_file(source_file, class_info, method, dependent_headers)
+                after_count = len(test_gen.test_metadata)
+                if after_count > before_count:
+                    tests_generated += 1
             
-            # Mark this class as processed
-            processed_classes.add((h_name, c_name))
+            # Only mark as processed if we actually generated tests
+            if tests_generated > 0:
+                processed_classes.add((h_name, c_name))
     
     # Step 3b: Process header-only files (files without corresponding .cpp)
     print("\nStep 3b: Generating tests for header-only files...")

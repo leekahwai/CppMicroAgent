@@ -1,13 +1,409 @@
 [
   {
-    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_XMLDocument_BasicConstruction.cpp",
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ConvertUTF32ToUTF8_NoThrow.cpp",
     "python_backup": null,
     "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
-    "test_name": "tinyxml2_XMLDocument_BasicConstruction",
-    "class_name": "XMLDocument",
-    "method_name": "XMLDocument",
+    "test_name": "tinyxml2_ConvertUTF32ToUTF8_NoThrow",
+    "class_name": "XMLUtil",
+    "method_name": "ConvertUTF32ToUTF8",
     "header_file": "tinyxml2.h",
-    "scenario": "BasicConstruction",
+    "scenario": "NoThrow",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ConvertUTF32ToUTF8_MultipleInvocations.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ConvertUTF32ToUTF8_MultipleInvocations",
+    "class_name": "XMLUtil",
+    "method_name": "ConvertUTF32ToUTF8",
+    "header_file": "tinyxml2.h",
+    "scenario": "MultipleInvocations",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ConvertUTF32ToUTF8_RapidCalls.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ConvertUTF32ToUTF8_RapidCalls",
+    "class_name": "XMLUtil",
+    "method_name": "ConvertUTF32ToUTF8",
+    "header_file": "tinyxml2.h",
+    "scenario": "RapidCalls",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToStr_NoThrow.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToStr_NoThrow",
+    "class_name": "XMLUtil",
+    "method_name": "ToStr",
+    "header_file": "tinyxml2.h",
+    "scenario": "NoThrow",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToStr_MultipleInvocations.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToStr_MultipleInvocations",
+    "class_name": "XMLUtil",
+    "method_name": "ToStr",
+    "header_file": "tinyxml2.h",
+    "scenario": "MultipleInvocations",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToStr_RapidCalls.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToStr_RapidCalls",
+    "class_name": "XMLUtil",
+    "method_name": "ToStr",
+    "header_file": "tinyxml2.h",
+    "scenario": "RapidCalls",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToInt_ReturnValue.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToInt_ReturnValue",
+    "class_name": "XMLUtil",
+    "method_name": "ToInt",
+    "header_file": "tinyxml2.h",
+    "scenario": "ReturnValue",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToInt_NoThrow.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToInt_NoThrow",
+    "class_name": "XMLUtil",
+    "method_name": "ToInt",
+    "header_file": "tinyxml2.h",
+    "scenario": "NoThrow",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToInt_MultipleInvocations.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToInt_MultipleInvocations",
+    "class_name": "XMLUtil",
+    "method_name": "ToInt",
+    "header_file": "tinyxml2.h",
+    "scenario": "MultipleInvocations",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToInt_ConsistentResults.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToInt_ConsistentResults",
+    "class_name": "XMLUtil",
+    "method_name": "ToInt",
+    "header_file": "tinyxml2.h",
+    "scenario": "ConsistentResults",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToUnsigned_ReturnValue.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToUnsigned_ReturnValue",
+    "class_name": "XMLUtil",
+    "method_name": "ToUnsigned",
+    "header_file": "tinyxml2.h",
+    "scenario": "ReturnValue",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToUnsigned_NoThrow.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToUnsigned_NoThrow",
+    "class_name": "XMLUtil",
+    "method_name": "ToUnsigned",
+    "header_file": "tinyxml2.h",
+    "scenario": "NoThrow",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToUnsigned_MultipleInvocations.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToUnsigned_MultipleInvocations",
+    "class_name": "XMLUtil",
+    "method_name": "ToUnsigned",
+    "header_file": "tinyxml2.h",
+    "scenario": "MultipleInvocations",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToUnsigned_ConsistentResults.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToUnsigned_ConsistentResults",
+    "class_name": "XMLUtil",
+    "method_name": "ToUnsigned",
+    "header_file": "tinyxml2.h",
+    "scenario": "ConsistentResults",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToBool_ReturnValue.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToBool_ReturnValue",
+    "class_name": "XMLUtil",
+    "method_name": "ToBool",
+    "header_file": "tinyxml2.h",
+    "scenario": "ReturnValue",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToBool_NoThrow.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToBool_NoThrow",
+    "class_name": "XMLUtil",
+    "method_name": "ToBool",
+    "header_file": "tinyxml2.h",
+    "scenario": "NoThrow",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToBool_MultipleInvocations.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToBool_MultipleInvocations",
+    "class_name": "XMLUtil",
+    "method_name": "ToBool",
+    "header_file": "tinyxml2.h",
+    "scenario": "MultipleInvocations",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToBool_ConsistentResults.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToBool_ConsistentResults",
+    "class_name": "XMLUtil",
+    "method_name": "ToBool",
+    "header_file": "tinyxml2.h",
+    "scenario": "ConsistentResults",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToFloat_ReturnValue.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToFloat_ReturnValue",
+    "class_name": "XMLUtil",
+    "method_name": "ToFloat",
+    "header_file": "tinyxml2.h",
+    "scenario": "ReturnValue",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToFloat_NoThrow.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToFloat_NoThrow",
+    "class_name": "XMLUtil",
+    "method_name": "ToFloat",
+    "header_file": "tinyxml2.h",
+    "scenario": "NoThrow",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToFloat_MultipleInvocations.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToFloat_MultipleInvocations",
+    "class_name": "XMLUtil",
+    "method_name": "ToFloat",
+    "header_file": "tinyxml2.h",
+    "scenario": "MultipleInvocations",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToFloat_ConsistentResults.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToFloat_ConsistentResults",
+    "class_name": "XMLUtil",
+    "method_name": "ToFloat",
+    "header_file": "tinyxml2.h",
+    "scenario": "ConsistentResults",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToDouble_ReturnValue.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToDouble_ReturnValue",
+    "class_name": "XMLUtil",
+    "method_name": "ToDouble",
+    "header_file": "tinyxml2.h",
+    "scenario": "ReturnValue",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToDouble_NoThrow.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToDouble_NoThrow",
+    "class_name": "XMLUtil",
+    "method_name": "ToDouble",
+    "header_file": "tinyxml2.h",
+    "scenario": "NoThrow",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToDouble_MultipleInvocations.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToDouble_MultipleInvocations",
+    "class_name": "XMLUtil",
+    "method_name": "ToDouble",
+    "header_file": "tinyxml2.h",
+    "scenario": "MultipleInvocations",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToDouble_ConsistentResults.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToDouble_ConsistentResults",
+    "class_name": "XMLUtil",
+    "method_name": "ToDouble",
+    "header_file": "tinyxml2.h",
+    "scenario": "ConsistentResults",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToInt64_ReturnValue.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToInt64_ReturnValue",
+    "class_name": "XMLUtil",
+    "method_name": "ToInt64",
+    "header_file": "tinyxml2.h",
+    "scenario": "ReturnValue",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToInt64_NoThrow.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToInt64_NoThrow",
+    "class_name": "XMLUtil",
+    "method_name": "ToInt64",
+    "header_file": "tinyxml2.h",
+    "scenario": "NoThrow",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToInt64_MultipleInvocations.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToInt64_MultipleInvocations",
+    "class_name": "XMLUtil",
+    "method_name": "ToInt64",
+    "header_file": "tinyxml2.h",
+    "scenario": "MultipleInvocations",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToInt64_ConsistentResults.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToInt64_ConsistentResults",
+    "class_name": "XMLUtil",
+    "method_name": "ToInt64",
+    "header_file": "tinyxml2.h",
+    "scenario": "ConsistentResults",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToUnsigned64_ReturnValue.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToUnsigned64_ReturnValue",
+    "class_name": "XMLUtil",
+    "method_name": "ToUnsigned64",
+    "header_file": "tinyxml2.h",
+    "scenario": "ReturnValue",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToUnsigned64_NoThrow.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToUnsigned64_NoThrow",
+    "class_name": "XMLUtil",
+    "method_name": "ToUnsigned64",
+    "header_file": "tinyxml2.h",
+    "scenario": "NoThrow",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToUnsigned64_MultipleInvocations.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToUnsigned64_MultipleInvocations",
+    "class_name": "XMLUtil",
+    "method_name": "ToUnsigned64",
+    "header_file": "tinyxml2.h",
+    "scenario": "MultipleInvocations",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ToUnsigned64_ConsistentResults.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ToUnsigned64_ConsistentResults",
+    "class_name": "XMLUtil",
+    "method_name": "ToUnsigned64",
+    "header_file": "tinyxml2.h",
+    "scenario": "ConsistentResults",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_SetBoolSerialization_NoThrow.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_SetBoolSerialization_NoThrow",
+    "class_name": "XMLUtil",
+    "method_name": "SetBoolSerialization",
+    "header_file": "tinyxml2.h",
+    "scenario": "NoThrow",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_SetBoolSerialization_MultipleInvocations.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_SetBoolSerialization_MultipleInvocations",
+    "class_name": "XMLUtil",
+    "method_name": "SetBoolSerialization",
+    "header_file": "tinyxml2.h",
+    "scenario": "MultipleInvocations",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_SetBoolSerialization_RapidCalls.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_SetBoolSerialization_RapidCalls",
+    "class_name": "XMLUtil",
+    "method_name": "SetBoolSerialization",
+    "header_file": "tinyxml2.h",
+    "scenario": "RapidCalls",
     "ollama_enhanced": false
   },
   {
@@ -19,6 +415,39 @@
     "method_name": "XMLDocument",
     "header_file": "tinyxml2.h",
     "scenario": "BasicConstruction",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_XMLDocument_MultipleInstances.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_XMLDocument_MultipleInstances",
+    "class_name": "XMLDocument",
+    "method_name": "XMLDocument",
+    "header_file": "tinyxml2.h",
+    "scenario": "MultipleInstances",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_XMLDocument_BasicConstruction.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_XMLDocument_BasicConstruction",
+    "class_name": "XMLDocument",
+    "method_name": "XMLDocument",
+    "header_file": "tinyxml2.h",
+    "scenario": "BasicConstruction",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_XMLDocument_MultipleInstances.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_XMLDocument_MultipleInstances",
+    "class_name": "XMLDocument",
+    "method_name": "XMLDocument",
+    "header_file": "tinyxml2.h",
+    "scenario": "MultipleInstances",
     "ollama_enhanced": false
   },
   {
@@ -88,6 +517,17 @@
     "ollama_enhanced": false
   },
   {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_Print_RapidCalls.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_Print_RapidCalls",
+    "class_name": "XMLDocument",
+    "method_name": "Print",
+    "header_file": "tinyxml2.h",
+    "scenario": "RapidCalls",
+    "ollama_enhanced": false
+  },
+  {
     "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_Accept_ReturnTrue.cpp",
     "python_backup": null,
     "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
@@ -118,6 +558,17 @@
     "method_name": "Accept",
     "header_file": "tinyxml2.h",
     "scenario": "MultipleInvocations",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_Accept_ConsistentBehavior.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_Accept_ConsistentBehavior",
+    "class_name": "XMLDocument",
+    "method_name": "Accept",
+    "header_file": "tinyxml2.h",
+    "scenario": "ConsistentBehavior",
     "ollama_enhanced": false
   },
   {
@@ -253,6 +704,17 @@
     "ollama_enhanced": false
   },
   {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_DeleteNode_RapidCalls.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_DeleteNode_RapidCalls",
+    "class_name": "XMLDocument",
+    "method_name": "DeleteNode",
+    "header_file": "tinyxml2.h",
+    "scenario": "RapidCalls",
+    "ollama_enhanced": false
+  },
+  {
     "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ClearError_NoThrow.cpp",
     "python_backup": null,
     "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
@@ -272,6 +734,17 @@
     "method_name": "ClearError",
     "header_file": "tinyxml2.h",
     "scenario": "MultipleInvocations",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_ClearError_RapidCalls.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_ClearError_RapidCalls",
+    "class_name": "XMLDocument",
+    "method_name": "ClearError",
+    "header_file": "tinyxml2.h",
+    "scenario": "RapidCalls",
     "ollama_enhanced": false
   },
   {
@@ -363,6 +836,17 @@
     "ollama_enhanced": false
   },
   {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_PrintError_RapidCalls.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_PrintError_RapidCalls",
+    "class_name": "XMLDocument",
+    "method_name": "PrintError",
+    "header_file": "tinyxml2.h",
+    "scenario": "RapidCalls",
+    "ollama_enhanced": false
+  },
+  {
     "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_Clear_NoThrow.cpp",
     "python_backup": null,
     "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
@@ -385,6 +869,17 @@
     "ollama_enhanced": false
   },
   {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_Clear_RapidCalls.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_Clear_RapidCalls",
+    "class_name": "XMLDocument",
+    "method_name": "Clear",
+    "header_file": "tinyxml2.h",
+    "scenario": "RapidCalls",
+    "ollama_enhanced": false
+  },
+  {
     "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_DeepCopy_NoThrow.cpp",
     "python_backup": null,
     "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
@@ -404,6 +899,17 @@
     "method_name": "DeepCopy",
     "header_file": "tinyxml2.h",
     "scenario": "MultipleInvocations",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_DeepCopy_RapidCalls.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_DeepCopy_RapidCalls",
+    "class_name": "XMLDocument",
+    "method_name": "DeepCopy",
+    "header_file": "tinyxml2.h",
+    "scenario": "RapidCalls",
     "ollama_enhanced": false
   },
   {
@@ -448,6 +954,17 @@
     "method_name": "MarkInUse",
     "header_file": "tinyxml2.h",
     "scenario": "MultipleInvocations",
+    "ollama_enhanced": false
+  },
+  {
+    "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/tinyxml2_MarkInUse_RapidCalls.cpp",
+    "python_backup": null,
+    "source_file": "/workspaces/CppMicroAgent/TestProjects/tinyxml2/tinyxml2.cpp",
+    "test_name": "tinyxml2_MarkInUse_RapidCalls",
+    "class_name": "XMLDocument",
+    "method_name": "MarkInUse",
+    "header_file": "tinyxml2.h",
+    "scenario": "RapidCalls",
     "ollama_enhanced": false
   }
 ]
