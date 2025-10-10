@@ -328,16 +328,58 @@ class HeaderAnalyzer:
             # Check if class is abstract (has pure virtual methods)
             is_abstract = '= 0' in class_content
             
+            # Check if class has protected/private destructor (cannot be instantiated directly)
+            # Look for protected: or private: followed by ~ClassName
+            has_protected_destructor = False
+            for match in re.finditer(r'(?:protected:|private:)\s*(.*?)(?=public:|private:|protected:|$|\};)', class_content, re.DOTALL):
+                section_text = match.group(1)
+                if f'~{class_name}' in section_text:
+                    has_protected_destructor = True
+                    break
+            
+            # Detect namespace by looking backward from class_start
+            namespace = self._detect_namespace(content, class_start)
+            
             return {
                 'class_name': class_name,
                 'methods': unique_methods,
                 'header_file': header_path.name,
                 'header_full_path': str(header_path),
-                'is_abstract': is_abstract
+                'is_abstract': is_abstract,
+                'has_protected_destructor': has_protected_destructor,
+                'namespace': namespace
             }
         except Exception as e:
             print(f"Error parsing class {class_name} in {header_path}: {e}")
             return None
+    
+    def _detect_namespace(self, content: str, class_start: int) -> str:
+        """Detect the namespace that contains the class by looking backward from class_start
+        Returns the namespace name or empty string if no namespace"""
+        # Look backward from class_start to find namespace declaration
+        before_class = content[:class_start]
+        
+        # Find all namespace declarations before this class
+        # Pattern: namespace name {
+        namespace_pattern = r'namespace\s+(\w+)\s*\{'
+        namespaces = []
+        
+        for match in re.finditer(namespace_pattern, before_class):
+            ns_name = match.group(1)
+            ns_start = match.start()
+            
+            # Check if this namespace is still open at class_start
+            # Count braces between namespace start and class start
+            between = content[match.end():class_start]
+            open_braces = between.count('{')
+            close_braces = between.count('}')
+            
+            # If we have more opens than closes, the namespace is still open
+            if open_braces >= close_braces:
+                namespaces.append(ns_name)
+        
+        # Return the innermost namespace (last one found)
+        return namespaces[-1] if namespaces else ""
     
     def _parse_parameters(self, params_str: str) -> list:
         """Helper method to parse parameter list from a string"""
@@ -1457,7 +1499,20 @@ TEST_F({class_name}_{method_name}_Test, HandlesEdgeCases) {{
                 values.append(var_name)
                 var_counter += 1
             elif '*' in param_type:
-                values.append('nullptr')
+                # Pointer type - use appropriate cast or value
+                if 'char' in param_type:
+                    # const char* or char* - use empty string or explicit cast
+                    if 'const' in param_type:
+                        values.append('""')  # Empty string literal for const char*
+                    else:
+                        values.append('static_cast<char*>(nullptr)')
+                elif 'FILE' in param_type:
+                    # FILE* - use explicit cast to avoid ambiguity
+                    values.append('static_cast<FILE*>(nullptr)')
+                else:
+                    # Other pointer types - use static_cast with explicit type
+                    clean_type = param_type.replace('const', '').strip()
+                    values.append(f'static_cast<{clean_type}>(nullptr)')
             else:
                 values.append(f'{param_type}()')
         
@@ -1769,12 +1824,21 @@ TEST_F({class_name}_{method_name}_Test, StressTest) {{
 
 """
         
-        # Add namespace declarations for Catch2
-        if 'catch' in class_info['header_file'].lower():
+        # Add namespace declarations
+        namespace = class_info.get('namespace', '')
+        if namespace:
+            # Add using namespace declaration for the detected namespace
+            content += f"using namespace {namespace};\n\n"
+        elif 'catch' in class_info['header_file'].lower():
+            # Fallback for Catch2 if namespace wasn't detected
             content += "using namespace Catch;\n"
             if 'textflow' in class_info['header_file'].lower():
                 content += "using namespace Catch::TextFlow;\n"
             content += "\n"
+        
+        # Skip test generation for classes with protected destructors (cannot be instantiated)
+        if class_info.get('has_protected_destructor', False):
+            return None
         
         # Generate single focused test
         _, obj_deps, obj_decl = self._generate_object_creation_code(class_name, class_info)
@@ -1918,7 +1982,8 @@ class TestBuilder:
     def __init__(self, output_root: Path, mock_dir: Path, source_root: Path):
         self.output_root = output_root
         self.mock_dir = mock_dir
-        self.source_root = source_root
+        # Convert source_root to absolute path to ensure file operations work correctly
+        self.source_root = source_root.resolve() if isinstance(source_root, Path) else Path(source_root).resolve()
         self.build_dir = output_root / "bin"
         self.build_dir.mkdir(parents=True, exist_ok=True)
         
@@ -1933,38 +1998,52 @@ class TestBuilder:
         # Find all source subdirectories
         self.include_dirs = [
             str(self.gtest_include),  # GoogleTest headers
+            str(self.source_root),     # Project root (for headers in root directory) - now absolute
         ]
         
         # For header-only libraries, add the source root first to support <project/header.h> includes
         if self.is_header_only:
             # Add the src directory to support includes like <catch2/...>
             # This allows #include <catch2/file.hpp> when catch2 is a subdir of src
-            if (source_root / 'src').exists():
-                self.include_dirs.append(str(source_root / 'src'))
+            if (self.source_root / 'src').exists():
+                self.include_dirs.append(str(self.source_root / 'src'))
         
         # Add inc directory if it exists
-        if (source_root / 'inc').exists():
-            self.include_dirs.append(str(source_root / 'inc'))
+        if (self.source_root / 'inc').exists():
+            self.include_dirs.append(str(self.source_root / 'inc'))
         
         # Add all subdirectories in src BEFORE mocks so real headers are found first
-        if (source_root / 'src').exists():
-            for subdir in (source_root / 'src').rglob('*'):
+        if (self.source_root / 'src').exists():
+            for subdir in (self.source_root / 'src').rglob('*'):
                 if subdir.is_dir():
                     self.include_dirs.append(str(subdir))
         
         # Add mock directory LAST so it's only used for missing headers
-        self.include_dirs.append(str(mock_dir))
+        self.include_dirs.append(str(self.mock_dir))
         
         # Find all source files for linking 
         # For header-only libraries like Catch2, we'll build a static library
         self.all_source_files = []
         self.project_lib = None  # Path to static library if built
         
-        if (source_root / 'src').exists():
-            for cpp_file in (source_root / 'src').rglob('*.cpp'):
+        # First check for .cpp files in project root (like tinyxml2)
+        for cpp_file in self.source_root.glob('*.cpp'):
+            filename = cpp_file.name.lower()
+            # Exclude main files and obvious test files (but not library files like tinyxml2.cpp)
+            if 'main' in filename and filename.startswith('main'):
+                continue
+            if filename.startswith('test') or filename.endswith('test.cpp') or filename.endswith('tests.cpp'):
+                continue
+            self.all_source_files.append(str(cpp_file))
+        
+        # Then check src directory
+        if (self.source_root / 'src').exists():
+            for cpp_file in (self.source_root / 'src').rglob('*.cpp'):
+                filename = cpp_file.name.lower()
                 # Exclude main files from the library to avoid conflicts with GoogleTest's main
-                if 'main.cpp' not in str(cpp_file).lower() and 'catch_main.cpp' not in str(cpp_file).lower():
-                    self.all_source_files.append(str(cpp_file))
+                if 'main' in filename or filename.startswith('test') or 'catch_main' in filename:
+                    continue
+                self.all_source_files.append(str(cpp_file))
         
         # If this is a header-only library with many source files, build a static library
         if self.is_header_only and len(self.all_source_files) > 20:
