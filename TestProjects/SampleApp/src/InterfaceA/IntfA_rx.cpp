@@ -11,6 +11,7 @@ IntfA_Rx::~IntfA_Rx() {
 
 auto IntfA_Rx::init() -> bool {
 	vec.clear();
+	bStart = true;  // FIX: Set flag before starting thread
 	std::thread t(&IntfA_Rx::process, this);
 	t.detach();
 

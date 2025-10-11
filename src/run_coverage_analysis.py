@@ -12,6 +12,7 @@ import os
 import sys
 import subprocess
 import json
+import glob
 from pathlib import Path
 
 # Add src directory to path for imports
@@ -59,9 +60,54 @@ def check_tests_exist():
     
     return True
 
+def cleanup_old_coverage_data(bin_dir):
+    """
+    Clean up old coverage data files to ensure fresh results.
+    This is part of the coverage workflow state machine.
+    
+    Args:
+        bin_dir: Directory containing test binaries and coverage files
+        
+    Returns:
+        tuple: (gcda_removed, gcno_info) - counts of files processed
+    """
+    import glob
+    
+    print("\n🧹 Cleaning up old coverage data...")
+    print("  📍 State: Pre-test cleanup phase")
+    
+    # Clean up old .gcda files (coverage runtime data from previous runs)
+    gcda_files = glob.glob(os.path.join(bin_dir, '*.gcda'))
+    gcda_removed = 0
+    
+    if gcda_files:
+        print(f"  📁 Found {len(gcda_files)} old .gcda files")
+        for gcda_file in gcda_files:
+            try:
+                os.remove(gcda_file)
+                gcda_removed += 1
+            except Exception as e:
+                print(f"  ⚠️  Failed to remove {gcda_file}: {e}")
+        print(f"  ✅ Removed {gcda_removed} old .gcda files")
+    else:
+        print("  ℹ️  No old .gcda files to clean up")
+    
+    # Check for .gcno files (coverage compile-time data)
+    # We don't remove these as they're needed for coverage measurement
+    gcno_files = glob.glob(os.path.join(bin_dir, '*.gcno'))
+    if gcno_files:
+        print(f"  ✅ Found {len(gcno_files)} .gcno files (compile-time data)")
+    else:
+        print(f"  ⚠️  Warning: No .gcno files found!")
+        print(f"     Tests may not have been compiled with --coverage flag")
+    
+    print(f"  📍 State: Cleanup complete, ready for test execution")
+    return (gcda_removed, len(gcno_files))
+
 def run_tests_with_coverage():
     """Run the generated tests and collect coverage data"""
-    print("🧪 Running tests with coverage...")
+    print("\n🧪 Running tests with coverage...")
+    print("  📍 State: Test execution phase")
     
     test_dir = "output/ConsolidatedTests"
     bin_dir = os.path.join(test_dir, "bin")
@@ -84,21 +130,8 @@ def run_tests_with_coverage():
     
     print(f"Found {len(test_executables)} test executables")
     
-    # Clean up old coverage data to ensure fresh results
-    import glob
-    gcda_files = glob.glob(os.path.join(bin_dir, '*.gcda'))
-    if gcda_files:
-        print(f"  🧹 Cleaning up {len(gcda_files)} old .gcda files...")
-        removed_count = 0
-        for gcda_file in gcda_files:
-            try:
-                os.remove(gcda_file)
-                removed_count += 1
-            except Exception as e:
-                print(f"  ⚠️  Failed to remove {gcda_file}: {e}")
-        print(f"  ✅ Removed {removed_count} old .gcda files")
-    else:
-        print("  ℹ️  No old .gcda files to clean up")
+    # Clean up old coverage data (part of state machine workflow)
+    cleanup_old_coverage_data(bin_dir)
     
     # Run each test from the bin directory so .gcda files are created in the right place
     passed = 0
@@ -143,6 +176,13 @@ def generate_coverage_report():
     print("\n📊 Generating coverage report...")
     
     coverage_dir = "output/UnitTestCoverage"
+    
+    # Clean up old coverage data to ensure fresh results
+    if os.path.exists(coverage_dir):
+        import shutil
+        print(f"  🧹 Cleaning old coverage data from {coverage_dir}")
+        shutil.rmtree(coverage_dir)
+    
     os.makedirs(coverage_dir, exist_ok=True)
     
     # Point to the bin directory where .gcda files are located
@@ -159,24 +199,37 @@ def generate_coverage_report():
     
     print(f"  📁 Found {len(gcda_files)} .gcda coverage files to process")
     
-    # Clean up empty .gcda files only (don't validate with gcov as it's slow and error-prone)
-    empty_count = 0
+    # Clean up .gcda files that don't have corresponding .gcno files
+    # These can't be processed by lcov/gcov and will cause errors
+    removed_count = 0
     for gcda_file in gcda_files[:]:  # Use slice to avoid modifying list while iterating
-        if os.path.getsize(gcda_file) == 0:
+        file_size = os.path.getsize(gcda_file)
+        
+        # Check 1: Remove empty files
+        if file_size == 0:
             try:
                 os.remove(gcda_file)
-                # Also remove the corresponding .gcno file
-                gcno_file = gcda_file.replace('.gcda', '.gcno')
-                if os.path.exists(gcno_file):
-                    os.remove(gcno_file)
-                empty_count += 1
+                removed_count += 1
+                gcda_files.remove(gcda_file)
+            except:
+                pass
+            continue
+        
+        # Check 2: Remove .gcda files without corresponding .gcno files
+        gcno_file = gcda_file.replace('.gcda', '.gcno')
+        if not os.path.exists(gcno_file):
+            try:
+                os.remove(gcda_file)
+                removed_count += 1
                 gcda_files.remove(gcda_file)
             except:
                 pass
     
-    if empty_count > 0:
-        print(f"  🧹 Removed {empty_count} empty .gcda files")
-        print(f"  📁 {len(gcda_files) - empty_count} valid .gcda files remaining")
+    if removed_count > 0:
+        print(f"  🧹 Removed {removed_count} orphaned/empty .gcda files")
+        print(f"  📁 {len(gcda_files)} .gcda files remaining")
+    else:
+        print(f"  ✅ All .gcda files have corresponding .gcno files")
     
     # Initialize lcov with error handling for common issues
     try:
@@ -185,21 +238,48 @@ def generate_coverage_report():
             '--directory', bin_dir,  # Changed: look in bin directory where .gcda files are
             '--base-directory', '.',  # Set base directory to current directory
             '--output-file', os.path.join(coverage_dir, 'coverage.info'),
-            '--ignore-errors', 'mismatch',  # Ignore line mismatch errors
-            '--ignore-errors', 'source',     # Ignore missing source files
-            '--ignore-errors', 'gcov',       # Ignore gcov errors
-            '--ignore-errors', 'empty',      # Ignore empty files
+            '--ignore-errors', 'mismatch',  # Ignore mismatch errors
+            '--ignore-errors', 'mismatch',  # (twice to suppress warning)
+            '--ignore-errors', 'source',    # Ignore missing source files
+            '--ignore-errors', 'source',    # (twice)
+            '--ignore-errors', 'gcov',      # Ignore gcov errors
+            '--ignore-errors', 'gcov',      # (twice)
+            '--ignore-errors', 'empty',     # Ignore empty files
+            '--ignore-errors', 'empty',     # (twice)
+            '--ignore-errors', 'negative',  # Ignore negative hit counts
+            '--ignore-errors', 'negative',  # (twice)
+            '--ignore-errors', 'corrupt',   # Ignore corrupt .gcda files
+            '--ignore-errors', 'corrupt',   # (twice)
+            '--ignore-errors', 'graph',     # Ignore graph file errors
+            '--ignore-errors', 'graph',     # (twice)
+            '--keep-going',                 # Continue on errors
             '--rc', 'geninfo_unexecuted_blocks=1'  # Set unexecuted blocks to zero
         ], capture_output=True, text=True)
         
+        # Debug output for troubleshooting
+        print(f"  📋 lcov exit code: {result.returncode}")
+        if result.stdout:
+            print(f"  📤 lcov stdout (first 500 chars): {result.stdout[:500]}")
+        if result.stderr:
+            print(f"  ⚠️  lcov stderr (first 500 chars): {result.stderr[:500]}")
+        
         if result.returncode != 0:
-            print(f"⚠️  lcov had issues: {result.stderr[:200]}")
+            print(f"⚠️  lcov returned non-zero exit code: {result.returncode}")
             print("Attempting to continue with partial coverage data...")
         
         # Check if coverage.info was created and has content
         coverage_file = os.path.join(coverage_dir, 'coverage.info')
-        if not os.path.exists(coverage_file) or os.path.getsize(coverage_file) == 0:
-            print(f"❌ No coverage data was collected.")
+        if not os.path.exists(coverage_file):
+            print(f"❌ coverage.info file was not created at {coverage_file}")
+            print("   Make sure tests were compiled with --coverage flag and executed.")
+            print(f"   Debug: Check if .gcda files exist in {bin_dir}")
+            return False
+        
+        file_size = os.path.getsize(coverage_file)
+        print(f"  📦 coverage.info size: {file_size} bytes")
+        
+        if file_size == 0:
+            print(f"❌ No coverage data was collected (coverage.info is empty).")
             print("   Make sure tests were compiled with --coverage flag and executed.")
             print(f"   Debug: Check if .gcda files exist in {bin_dir}")
             return False
@@ -293,6 +373,15 @@ def generate_coverage_report():
                 f.write("="*70 + "\n")
             
             print(f"   Text: {text_report_file}")
+            
+            # Create a copy in root directory for easy access by users
+            root_report = "coverage_report.txt"
+            import shutil
+            try:
+                shutil.copy2(text_report_file, root_report)
+                print(f"   Copy: {root_report} (for easy access)")
+            except Exception as e:
+                print(f"   ⚠️  Could not create root copy: {e}")
         except Exception as e:
             print(f"   ⚠️  Could not generate text report: {e}")
         

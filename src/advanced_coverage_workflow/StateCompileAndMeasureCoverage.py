@@ -2,6 +2,7 @@ import os
 import subprocess
 import tempfile
 import shutil
+import glob
 from ..flow_manager import flow
 from ..ConfigReader import ConfigReader
 
@@ -86,8 +87,40 @@ class StateCompileAndMeasureCoverage():
             print(f"[StateCompileAndMeasureCoverage] Compilation error: {e}")
             return False
 
+    def _cleanup_old_coverage_data(self, coverage_dir):
+        """Clean up old .gcda and .gcno files before running tests"""
+        import glob
+        
+        build_dir = os.path.join(coverage_dir, "build")
+        if not os.path.exists(build_dir):
+            return
+        
+        # Clean up .gcda files (coverage runtime data)
+        gcda_files = glob.glob(os.path.join(build_dir, '**/*.gcda'), recursive=True)
+        if gcda_files:
+            print(f"  🧹 Cleaning up {len(gcda_files)} old .gcda files...")
+            for gcda_file in gcda_files:
+                try:
+                    os.remove(gcda_file)
+                except Exception as e:
+                    print(f"  ⚠️  Failed to remove {gcda_file}: {e}")
+        
+        # Optionally clean up .gcno files (coverage compile-time data)
+        # Only if we're doing a fresh build
+        # gcno_files = glob.glob(os.path.join(build_dir, '**/*.gcno'), recursive=True)
+        # if gcno_files:
+        #     print(f"  🧹 Cleaning up {len(gcno_files)} old .gcno files...")
+        #     for gcno_file in gcno_files:
+        #         try:
+        #             os.remove(gcno_file)
+        #         except Exception as e:
+        #             print(f"  ⚠️  Failed to remove {gcno_file}: {e}")
+    
     def _run_coverage_analysis(self, coverage_dir):
         """Run gcov and lcov to generate coverage data"""
+        
+        # Clean up old coverage data before running tests
+        self._cleanup_old_coverage_data(coverage_dir)
         
         build_dir = os.path.join(coverage_dir, "build")
         coverage_results = {

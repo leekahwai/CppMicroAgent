@@ -1,27 +1,28 @@
-#include "IntfB_tx.h"
+#include "IntfA_tx.h"
 #include <thread>
 #include <chrono>
 
-IntfB_Tx::IntfB_Tx() :bStart{ false },vec {} {
+IntfA_Tx::IntfA_Tx() :bStart{ false },vec {} {
 }
 
-IntfB_Tx::~IntfB_Tx() {
+IntfA_Tx::~IntfA_Tx() {
 	vec.clear();
 }
 
-auto IntfB_Tx::init() -> bool {
+auto IntfA_Tx::init() -> bool {
 	vec.clear();
-	std::thread t(&IntfB_Tx::process, this);
+	bStart = true;  // FIX: Set flag before starting thread
+	std::thread t(&IntfA_Tx::process, this);
 	t.detach();
 	return true;
 }
 
-auto IntfB_Tx::close()->bool {
+auto IntfA_Tx::close()->bool {
 	bStart = false;
 	return true;
 }
 
-void IntfB_Tx::process() {
+void IntfA_Tx::process() {
 	while (bStart) {
 		_mutex.lock(); 
 		if (!vec.empty()) {

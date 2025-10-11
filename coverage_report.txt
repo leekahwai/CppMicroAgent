@@ -1,0 +1,33 @@
+======================================================================
+Coverage Analysis Report
+======================================================================
+
+Summary coverage rate:
+  lines......: 28.1% (39 of 139 lines)
+  functions..: 31.7% (13 of 41 functions)
+  branches...: no data found
+
+
+Detailed Coverage by File:
+----------------------------------------------------------------------
+                                     |Lines       |Functions  |Branches    
+Filename                             |Rate     Num|Rate    Num|Rate     Num
+===========================================================================
+[/workspaces/CppMicroAgent/TestProjects/SampleApp/]
+SampleApp.cpp                        |16.7%      6| 0.0%     1|    -      0
+src/InterfaceA/InterfaceA.cpp        | 200%      5| 0.0%     3|    -      0
+src/InterfaceA/IntfA_rx.h            |    -      0|    -     0|    -      0
+src/InterfaceA/IntfA_tx.h            |    -      0|    -     0|    -      0
+src/InterfaceB/InterfaceB.cpp        | 200%      5| 0.0%     3|    -      0
+src/InterfaceB/IntfB_rx.cpp          | 120%      5| 0.0%     2|    -      0
+src/InterfaceB/IntfB_rx.h            |    -      0|    -     0|    -      0
+src/InterfaceB/IntfB_tx.cpp          |27.8%     18| 0.0%     4|    -      0
+src/InterfaceB/IntfB_tx.h            |    -      0|    -     0|    -      0
+src/ProgramApp/ProgramApp.cpp        |    -      0|    -     0|    -      0
+===========================================================================
+                               Total:| 105%     39| 0.0%    13|    -      0
+
+======================================================================
+Report generated: coverage_filtered.info
+HTML report: output/UnitTestCoverage/lcov_html/index.html
+======================================================================

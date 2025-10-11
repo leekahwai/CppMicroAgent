@@ -11,6 +11,7 @@ IntfB_Rx::~IntfB_Rx() {
 
 auto IntfB_Rx::init() -> bool {
 	vec.clear();
+	bStart = true;  // FIX: Set flag before starting thread
 	std::thread t(&IntfB_Rx::process, this);
 	t.detach();
 
