@@ -227,12 +227,12 @@ case $choice in
                 echo ""
             fi
         else
-            # For non-tinyxml2 projects, use universal enhanced generator
-            echo "🎯 Using Universal Enhanced Test Generator"
-            echo "   (Targets 70% function coverage)"
+            # For non-tinyxml2 projects, use streamlined generator for fast coverage
+            echo "🎯 Using Streamlined Test Generator (Fast)"
+            echo "   (Targets 70% function coverage with 1 test per method)"
             echo ""
             
-            if python3 src/universal_enhanced_test_generator.py; then
+            if python3 src/streamlined_test_generator.py; then
                 echo ""
                 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                 echo "✅ Test Generation Complete!"
@@ -244,7 +244,7 @@ case $choice in
             else
                 echo ""
                 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                echo "❌ Universal Enhanced Test Generation Failed!"
+                echo "❌ Streamlined Test Generation Failed!"
                 exit 1
             fi
         fi

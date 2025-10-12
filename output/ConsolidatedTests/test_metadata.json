@@ -1,300 +1,212 @@
 {
   "tests": [
     {
-      "test_name": "IntfB_Tx_init_BasicUsage",
+      "test_name": "IntfB_Rx_init",
+      "class_name": "IntfB_Rx",
+      "method_name": "init",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_Rx_init.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfB_Rx_init",
+      "compiled": true
+    },
+    {
+      "test_name": "IntfB_Rx_close",
+      "class_name": "IntfB_Rx",
+      "method_name": "close",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_Rx_close.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfB_Rx_close",
+      "compiled": true
+    },
+    {
+      "test_name": "IntfB_Rx_addToQueue",
+      "class_name": "IntfB_Rx",
+      "method_name": "addToQueue",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_Rx_addToQueue.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfB_Rx_addToQueue",
+      "compiled": true
+    },
+    {
+      "test_name": "IntfB_Rx_getStats",
+      "class_name": "IntfB_Rx",
+      "method_name": "getStats",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_Rx_getStats.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfB_Rx_getStats",
+      "compiled": true
+    },
+    {
+      "test_name": "IntfA_Rx_init",
+      "class_name": "IntfA_Rx",
+      "method_name": "init",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfA_Rx_init.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfA_Rx_init",
+      "compiled": true
+    },
+    {
+      "test_name": "IntfA_Rx_close",
+      "class_name": "IntfA_Rx",
+      "method_name": "close",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfA_Rx_close.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfA_Rx_close",
+      "compiled": true
+    },
+    {
+      "test_name": "IntfA_Rx_addToQueue",
+      "class_name": "IntfA_Rx",
+      "method_name": "addToQueue",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfA_Rx_addToQueue.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfA_Rx_addToQueue",
+      "compiled": true
+    },
+    {
+      "test_name": "IntfA_Rx_getStats",
+      "class_name": "IntfA_Rx",
+      "method_name": "getStats",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfA_Rx_getStats.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfA_Rx_getStats",
+      "compiled": true
+    },
+    {
+      "test_name": "Program_run",
+      "class_name": "Program",
+      "method_name": "run",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/Program_run.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/Program_run",
+      "compiled": true
+    },
+    {
+      "test_name": "ProgramApp_ProgramApp",
+      "class_name": "ProgramApp",
+      "method_name": "ProgramApp",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/ProgramApp_ProgramApp.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/ProgramApp_ProgramApp",
+      "compiled": false
+    },
+    {
+      "test_name": "ProgramApp_run",
+      "class_name": "ProgramApp",
+      "method_name": "run",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/ProgramApp_run.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/ProgramApp_run",
+      "compiled": false
+    },
+    {
+      "test_name": "InterfaceB_addToTx",
+      "class_name": "InterfaceB",
+      "method_name": "addToTx",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceB_addToTx.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/InterfaceB_addToTx",
+      "compiled": true
+    },
+    {
+      "test_name": "InterfaceB_addToRx",
+      "class_name": "InterfaceB",
+      "method_name": "addToRx",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceB_addToRx.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/InterfaceB_addToRx",
+      "compiled": true
+    },
+    {
+      "test_name": "InterfaceB_init",
+      "class_name": "InterfaceB",
+      "method_name": "init",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceB_init.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/InterfaceB_init",
+      "compiled": true
+    },
+    {
+      "test_name": "InterfaceB_close",
+      "class_name": "InterfaceB",
+      "method_name": "close",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceB_close.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/InterfaceB_close",
+      "compiled": true
+    },
+    {
+      "test_name": "InterfaceB_getTxStats",
+      "class_name": "InterfaceB",
+      "method_name": "getTxStats",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceB_getTxStats.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/InterfaceB_getTxStats",
+      "compiled": true
+    },
+    {
+      "test_name": "InterfaceB_getRxStats",
+      "class_name": "InterfaceB",
+      "method_name": "getRxStats",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceB_getRxStats.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/InterfaceB_getRxStats",
+      "compiled": true
+    },
+    {
+      "test_name": "IntfB_Tx_init",
       "class_name": "IntfB_Tx",
       "method_name": "init",
-      "test_file": "output/ConsolidatedTests/tests/IntfB_Tx_init_BasicUsage.cpp",
-      "binary": "output/ConsolidatedTests/bin/IntfB_Tx_init_BasicUsage",
-      "compiled": false
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_Tx_init.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfB_Tx_init",
+      "compiled": true
     },
     {
-      "test_name": "IntfB_Tx_init_MultipleInvocations",
-      "class_name": "IntfB_Tx",
-      "method_name": "init",
-      "test_file": "output/ConsolidatedTests/tests/IntfB_Tx_init_MultipleInvocations.cpp",
-      "binary": "output/ConsolidatedTests/bin/IntfB_Tx_init_MultipleInvocations",
-      "compiled": false
-    },
-    {
-      "test_name": "IntfB_Tx_init_Consistency",
-      "class_name": "IntfB_Tx",
-      "method_name": "init",
-      "test_file": "output/ConsolidatedTests/tests/IntfB_Tx_init_Consistency.cpp",
-      "binary": "output/ConsolidatedTests/bin/IntfB_Tx_init_Consistency",
-      "compiled": false
-    },
-    {
-      "test_name": "IntfB_Tx_init_NoThrow",
-      "class_name": "IntfB_Tx",
-      "method_name": "init",
-      "test_file": "output/ConsolidatedTests/tests/IntfB_Tx_init_NoThrow.cpp",
-      "binary": "output/ConsolidatedTests/bin/IntfB_Tx_init_NoThrow",
-      "compiled": false
-    },
-    {
-      "test_name": "IntfB_Tx_close_BasicUsage",
+      "test_name": "IntfB_Tx_close",
       "class_name": "IntfB_Tx",
       "method_name": "close",
-      "test_file": "output/ConsolidatedTests/tests/IntfB_Tx_close_BasicUsage.cpp",
-      "binary": "output/ConsolidatedTests/bin/IntfB_Tx_close_BasicUsage",
-      "compiled": false
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_Tx_close.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfB_Tx_close",
+      "compiled": true
     },
     {
-      "test_name": "IntfB_Tx_close_MultipleInvocations",
-      "class_name": "IntfB_Tx",
-      "method_name": "close",
-      "test_file": "output/ConsolidatedTests/tests/IntfB_Tx_close_MultipleInvocations.cpp",
-      "binary": "output/ConsolidatedTests/bin/IntfB_Tx_close_MultipleInvocations",
-      "compiled": false
-    },
-    {
-      "test_name": "IntfB_Tx_close_Consistency",
-      "class_name": "IntfB_Tx",
-      "method_name": "close",
-      "test_file": "output/ConsolidatedTests/tests/IntfB_Tx_close_Consistency.cpp",
-      "binary": "output/ConsolidatedTests/bin/IntfB_Tx_close_Consistency",
-      "compiled": false
-    },
-    {
-      "test_name": "IntfB_Tx_close_NoThrow",
-      "class_name": "IntfB_Tx",
-      "method_name": "close",
-      "test_file": "output/ConsolidatedTests/tests/IntfB_Tx_close_NoThrow.cpp",
-      "binary": "output/ConsolidatedTests/bin/IntfB_Tx_close_NoThrow",
-      "compiled": false
-    },
-    {
-      "test_name": "IntfB_Tx_addToQueue_BasicUsage",
+      "test_name": "IntfB_Tx_addToQueue",
       "class_name": "IntfB_Tx",
       "method_name": "addToQueue",
-      "test_file": "output/ConsolidatedTests/tests/IntfB_Tx_addToQueue_BasicUsage.cpp",
-      "binary": "output/ConsolidatedTests/bin/IntfB_Tx_addToQueue_BasicUsage",
-      "compiled": false
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_Tx_addToQueue.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfB_Tx_addToQueue",
+      "compiled": true
     },
     {
-      "test_name": "IntfB_Tx_addToQueue_MultipleInvocations",
-      "class_name": "IntfB_Tx",
-      "method_name": "addToQueue",
-      "test_file": "output/ConsolidatedTests/tests/IntfB_Tx_addToQueue_MultipleInvocations.cpp",
-      "binary": "output/ConsolidatedTests/bin/IntfB_Tx_addToQueue_MultipleInvocations",
-      "compiled": false
-    },
-    {
-      "test_name": "IntfB_Tx_addToQueue_EdgeCases",
-      "class_name": "IntfB_Tx",
-      "method_name": "addToQueue",
-      "test_file": "output/ConsolidatedTests/tests/IntfB_Tx_addToQueue_EdgeCases.cpp",
-      "binary": "output/ConsolidatedTests/bin/IntfB_Tx_addToQueue_EdgeCases",
-      "compiled": false
-    },
-    {
-      "test_name": "IntfB_Tx_addToQueue_NoThrow",
-      "class_name": "IntfB_Tx",
-      "method_name": "addToQueue",
-      "test_file": "output/ConsolidatedTests/tests/IntfB_Tx_addToQueue_NoThrow.cpp",
-      "binary": "output/ConsolidatedTests/bin/IntfB_Tx_addToQueue_NoThrow",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_addToTx_BasicUsage",
+      "test_name": "InterfaceA_addToTx",
       "class_name": "InterfaceA",
       "method_name": "addToTx",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_addToTx_BasicUsage.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_addToTx_BasicUsage",
-      "compiled": false
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceA_addToTx.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/InterfaceA_addToTx",
+      "compiled": true
     },
     {
-      "test_name": "InterfaceA_addToTx_MultipleInvocations",
-      "class_name": "InterfaceA",
-      "method_name": "addToTx",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_addToTx_MultipleInvocations.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_addToTx_MultipleInvocations",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_addToTx_EdgeCases",
-      "class_name": "InterfaceA",
-      "method_name": "addToTx",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_addToTx_EdgeCases.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_addToTx_EdgeCases",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_addToTx_NoThrow",
-      "class_name": "InterfaceA",
-      "method_name": "addToTx",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_addToTx_NoThrow.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_addToTx_NoThrow",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_addToRx_BasicUsage",
+      "test_name": "InterfaceA_addToRx",
       "class_name": "InterfaceA",
       "method_name": "addToRx",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_addToRx_BasicUsage.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_addToRx_BasicUsage",
-      "compiled": false
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceA_addToRx.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/InterfaceA_addToRx",
+      "compiled": true
     },
     {
-      "test_name": "InterfaceA_addToRx_MultipleInvocations",
-      "class_name": "InterfaceA",
-      "method_name": "addToRx",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_addToRx_MultipleInvocations.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_addToRx_MultipleInvocations",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_addToRx_EdgeCases",
-      "class_name": "InterfaceA",
-      "method_name": "addToRx",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_addToRx_EdgeCases.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_addToRx_EdgeCases",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_addToRx_NoThrow",
-      "class_name": "InterfaceA",
-      "method_name": "addToRx",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_addToRx_NoThrow.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_addToRx_NoThrow",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_init_BasicUsage",
+      "test_name": "InterfaceA_init",
       "class_name": "InterfaceA",
       "method_name": "init",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_init_BasicUsage.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_init_BasicUsage",
-      "compiled": false
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceA_init.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/InterfaceA_init",
+      "compiled": true
     },
     {
-      "test_name": "InterfaceA_init_MultipleInvocations",
-      "class_name": "InterfaceA",
-      "method_name": "init",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_init_MultipleInvocations.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_init_MultipleInvocations",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_init_Consistency",
-      "class_name": "InterfaceA",
-      "method_name": "init",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_init_Consistency.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_init_Consistency",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_init_NoThrow",
-      "class_name": "InterfaceA",
-      "method_name": "init",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_init_NoThrow.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_init_NoThrow",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_close_BasicUsage",
+      "test_name": "InterfaceA_close",
       "class_name": "InterfaceA",
       "method_name": "close",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_close_BasicUsage.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_close_BasicUsage",
-      "compiled": false
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceA_close.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/InterfaceA_close",
+      "compiled": true
     },
     {
-      "test_name": "InterfaceA_close_MultipleInvocations",
-      "class_name": "InterfaceA",
-      "method_name": "close",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_close_MultipleInvocations.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_close_MultipleInvocations",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_close_NoThrow",
-      "class_name": "InterfaceA",
-      "method_name": "close",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_close_NoThrow.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_close_NoThrow",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_getTxStats_BasicUsage",
+      "test_name": "InterfaceA_getTxStats",
       "class_name": "InterfaceA",
       "method_name": "getTxStats",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_getTxStats_BasicUsage.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_getTxStats_BasicUsage",
-      "compiled": false
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceA_getTxStats.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/InterfaceA_getTxStats",
+      "compiled": true
     },
     {
-      "test_name": "InterfaceA_getTxStats_MultipleInvocations",
-      "class_name": "InterfaceA",
-      "method_name": "getTxStats",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_getTxStats_MultipleInvocations.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_getTxStats_MultipleInvocations",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_getTxStats_BoundaryCheck",
-      "class_name": "InterfaceA",
-      "method_name": "getTxStats",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_getTxStats_BoundaryCheck.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_getTxStats_BoundaryCheck",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_getTxStats_Consistency",
-      "class_name": "InterfaceA",
-      "method_name": "getTxStats",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_getTxStats_Consistency.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_getTxStats_Consistency",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_getTxStats_NoThrow",
-      "class_name": "InterfaceA",
-      "method_name": "getTxStats",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_getTxStats_NoThrow.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_getTxStats_NoThrow",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_getRxStats_BasicUsage",
+      "test_name": "InterfaceA_getRxStats",
       "class_name": "InterfaceA",
       "method_name": "getRxStats",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_getRxStats_BasicUsage.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_getRxStats_BasicUsage",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_getRxStats_MultipleInvocations",
-      "class_name": "InterfaceA",
-      "method_name": "getRxStats",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_getRxStats_MultipleInvocations.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_getRxStats_MultipleInvocations",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_getRxStats_BoundaryCheck",
-      "class_name": "InterfaceA",
-      "method_name": "getRxStats",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_getRxStats_BoundaryCheck.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_getRxStats_BoundaryCheck",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_getRxStats_Consistency",
-      "class_name": "InterfaceA",
-      "method_name": "getRxStats",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_getRxStats_Consistency.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_getRxStats_Consistency",
-      "compiled": false
-    },
-    {
-      "test_name": "InterfaceA_getRxStats_NoThrow",
-      "class_name": "InterfaceA",
-      "method_name": "getRxStats",
-      "test_file": "output/ConsolidatedTests/tests/InterfaceA_getRxStats_NoThrow.cpp",
-      "binary": "output/ConsolidatedTests/bin/InterfaceA_getRxStats_NoThrow",
-      "compiled": false
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceA_getRxStats.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/InterfaceA_getRxStats",
+      "compiled": true
     }
   ]
 }
