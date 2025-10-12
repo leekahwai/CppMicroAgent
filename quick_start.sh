@@ -226,9 +226,30 @@ case $choice in
                 echo "⚠️  Enhanced test script not found, falling back to standard generation"
                 echo ""
             fi
+        else
+            # For non-tinyxml2 projects, use universal enhanced generator
+            echo "🎯 Using Universal Enhanced Test Generator"
+            echo "   (Targets 70% function coverage)"
+            echo ""
+            
+            if python3 src/universal_enhanced_test_generator.py; then
+                echo ""
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo "✅ Test Generation Complete!"
+                echo ""
+                echo "📁 Output location: output/ConsolidatedTests/"
+                echo ""
+                echo "💡 Run Option 2 to verify coverage with full analysis"
+                USE_ENHANCED=1
+            else
+                echo ""
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo "❌ Universal Enhanced Test Generation Failed!"
+                exit 1
+            fi
         fi
 
-        # Only run standard test generation if enhanced wasn't used
+        # Only run standard test generation if enhanced wasn't used (this should not happen now)
         if [ $USE_ENHANCED -eq 0 ]; then
             # Use Ollama only if --ollama flag was specified
             if [ $USE_OLLAMA -eq 1 ]; then
