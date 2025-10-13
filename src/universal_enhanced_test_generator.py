@@ -61,6 +61,7 @@ class ClassInfo:
     dependencies: Set[str] = field(default_factory=set)
     header_file: Optional[Path] = None
     member_variables: List[Tuple[str, str]] = field(default_factory=list)  # [(type, name), ...]
+    is_struct: bool = False  # True if declared as struct (public by default)
 
 class CppProjectAnalyzer:
     """Analyzes a C++ project to extract class and method information"""
@@ -131,13 +132,14 @@ class CppProjectAnalyzer:
             # Extract namespace
             namespace = self._extract_namespace(content)
             
-            # Find all classes
-            class_pattern = r'\b(?:class|struct)\s+(\w+)(?:\s*:\s*([^{]+))?\s*\{([^}]*(?:\{[^}]*\}[^}]*)*)\}'
+            # Find all classes and structs (capture which one)
+            class_pattern = r'\b(class|struct)\s+(\w+)(?:\s*:\s*([^{]+))?\s*\{([^}]*(?:\{[^}]*\}[^}]*)*)\}'
             
             for match in re.finditer(class_pattern, content, re.DOTALL):
-                class_name = match.group(1)
-                inheritance = match.group(2) or ""
-                class_body = match.group(3)
+                keyword = match.group(1)  # 'class' or 'struct'
+                class_name = match.group(2)
+                inheritance = match.group(3) or ""
+                class_body = match.group(4)
                 
                 if class_name in self.classes:
                     class_info = self.classes[class_name]
@@ -145,7 +147,8 @@ class CppProjectAnalyzer:
                     class_info = ClassInfo(
                         name=class_name,
                         namespace=namespace,
-                        header_file=header_path
+                        header_file=header_path,
+                        is_struct=(keyword == 'struct')  # Track if it's a struct
                     )
                     self.classes[class_name] = class_info
                 
@@ -183,7 +186,8 @@ class CppProjectAnalyzer:
     
     def _extract_methods(self, class_body: str, class_info: ClassInfo):
         """Extract method declarations from class body"""
-        current_access = "private" if "class" in str(class_info) else "public"
+        # Default access: private for class, public for struct
+        current_access = "public" if class_info.is_struct else "private"
         
         # Split by access specifiers
         parts = re.split(r'\b(public|protected|private)\s*:', class_body)
