@@ -415,7 +415,7 @@ case $choice in
         echo ""
         
         # Define the improvement prompt
-        IMPROVEMENT_PROMPT="Analyze the Python files in @src/ directory, specifically focusing on creating parser and unit test for the current project found in TestProjects. The current project name is found as project_path in CppMicroAgent.cfg: 1. improved_cpp_<project_name>_parser.py by adding project specific logic. 2. Test generator files (test_generator_<project_name>.py). Create or modify Python files iteratively without affecting previous logic and only enhancing for this specific project to implement these improvements to achieve at least 85% line coverage. Focus on making actual code changes in python, not creating the C++ unit test itself. After fix, please re-run option 1 of quick_start.sh and restart quick_start with option 2 shall generate the coverage test. Ensure that generic flow is not modified, additional fixes to current project is specific and isolated. Also coverage report should be isolated to current project and not other libraries like gtest  "
+        IMPROVEMENT_PROMPT="Read @COVERAGE_AI_INSTRUCTIONS.md and follow the checklist. Report progress after each step and mark items as completed"
 
         # Run qwen with YOLO mode
         if qwen -i '$IMPROVEMENT_PROMPT'; then
