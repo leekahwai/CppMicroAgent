@@ -1,35 +1,17 @@
-======================================================================
-Coverage Analysis Report
-======================================================================
-
-Summary coverage rate:
-  lines......: 84.2% (165 of 196 lines)
-  functions..: 87.0% (47 of 54 functions)
-  branches...: no data found
-
-
-Detailed Coverage by File:
-----------------------------------------------------------------------
                                  |Lines       |Functions  |Branches    
 Filename                         |Rate     Num|Rate    Num|Rate     Num
 =======================================================================
 [/workspaces/CppMicroAgent/TestProjects/SampleApp/src/]
 InterfaceA/InterfaceA.cpp        |55.6%     18| 0.0%     8|    -      0
-InterfaceA/IntfA_rx.cpp          |22.2%     27| 0.0%     6|    -      0
+InterfaceA/IntfA_rx.cpp          |54.5%     11| 0.0%     3|    -      0
 InterfaceA/IntfA_rx.h            |25.0%      4| 0.0%     1|    -      0
 InterfaceA/IntfA_tx.cpp          |23.8%     21| 0.0%     5|    -      0
-InterfaceA/IntfA_tx.h            |20.0%     10| 0.0%     2|    -      0
+InterfaceA/IntfA_tx.h            |18.2%     11| 0.0%     2|    -      0
 InterfaceB/InterfaceB.cpp        |55.6%     18| 0.0%     8|    -      0
-InterfaceB/IntfB_rx.cpp          |24.0%     25| 0.0%     6|    -      0
+InterfaceB/IntfB_rx.cpp          |66.7%      9| 0.0%     3|    -      0
 InterfaceB/IntfB_rx.h            |25.0%      4| 0.0%     1|    -      0
-InterfaceB/IntfB_tx.cpp          |22.7%     22| 0.0%     5|    -      0
+InterfaceB/IntfB_tx.cpp          |23.8%     21| 0.0%     5|    -      0
 InterfaceB/IntfB_tx.h            |25.0%      8| 0.0%     2|    -      0
 Program/Program.cpp              |37.5%      8| 0.0%     3|    -      0
-ProgramApp/ProgramApp.cpp        |    -      0|    -     0|    -      0
 =======================================================================
-                           Total:|32.7%    165| 0.0%    47|    -      0
-
-======================================================================
-Report generated: coverage_filtered.info
-HTML report: output/UnitTestCoverage/lcov_html/index.html
-======================================================================
+                           Total:|38.3%    133| 0.0%    41|    -      0
