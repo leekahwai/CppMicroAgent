@@ -174,7 +174,7 @@ echo "What would you like to do?"
 echo ""
 echo "  1. Generate Unit Tests (Quick, ~30 seconds)"
 echo "  2. Full Coverage Analysis (Requires Option 1 first, ~1-2 minutes)"
-echo "  3. Build Sample Application"
+echo "  3. AI Code Improvement (Qwen with YOLO mode - improves parser & generators)"
 echo "  4. View Existing Reports"
 echo "  5. Select Project"
 echo "  6. Exit"
@@ -366,47 +366,64 @@ case $choice in
         
     3)
         echo ""
-        echo "Building Project..."
+        echo "AI-Powered Code Improvement with Qwen"
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        
-        CURRENT_PROJECT=$(get_project_path)
-        PROJECT_DIR="$CURRENT_PROJECT"
-        
-        if [ ! -d "$PROJECT_DIR" ]; then
-            echo "❌ Project directory not found: $PROJECT_DIR"
-            exit 1
-        fi
-        
-        cd "$PROJECT_DIR"
-        
-        # Check if CMakeLists.txt exists
-        if [ ! -f "CMakeLists.txt" ]; then
-            echo "❌ CMakeLists.txt not found in $PROJECT_DIR"
-            echo "   This project may not support CMake builds"
-            exit 1
-        fi
-        
-        mkdir -p build
-        cd build
-        
-        if ! command_exists cmake; then
-            echo "❌ cmake not found - install with: sudo apt-get install cmake"
-            exit 1
-        fi
-        
-        cmake ..
-        make
-        
         echo ""
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "✅ Build Complete!"
+        echo "This will use Qwen CLI with agentic capabilities to:"
+        echo "  • Analyze and improve the C++ parser (improved_cpp_parser.py)"
+        echo "  • Enhance test generators for better robustness"
+        echo "  • Make actual code modifications (YOLO mode enabled)"
         echo ""
-        echo "🚀 Run the application:"
-        echo "   cd $PROJECT_DIR/build"
-        if [ -f "SampleApp" ]; then
-            echo "   ./SampleApp"
+        
+        # Check if qwen is available
+        if ! command_exists qwen; then
+            echo "❌ qwen CLI not found!"
+            echo "   Please install qwen CLI first"
+            exit 1
+        fi
+        
+        echo "🤖 Invoking Qwen with agentic capabilities..."
+        echo ""
+        
+        # Define the improvement prompt
+        IMPROVEMENT_PROMPT="Analyze the Python files in src/ directory, specifically focusing on:
+
+1. improved_cpp_parser.py - Enhance the C++ parsing logic to:
+   - Better handle complex C++ constructs (templates, namespaces, nested classes)
+   - Improve function signature parsing and parameter extraction
+   - Add robust error handling for malformed C++ code
+   - Handle edge cases in header-only libraries
+
+2. Test generator files (*test_generator*.py) - Make them more robust by:
+   - Improving test case generation logic
+   - Adding better coverage for edge cases
+   - Enhancing error handling and validation
+   - Making generated tests more reliable
+
+Create or modify Python files to implement these improvements. Focus on making actual code changes, not just recommendations. Prioritize parser robustness and test generator reliability."
+
+        # Run qwen with YOLO mode
+        if qwen --approval-mode=yolo --all-files --prompt "$IMPROVEMENT_PROMPT"; then
+            echo ""
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "✅ Qwen Code Improvement Complete!"
+            echo ""
+            echo "📝 Changes made:"
+            echo "   Review git diff to see what was modified"
+            echo ""
+            echo "💡 Next steps:"
+            echo "   1. Review changes with: git diff src/"
+            echo "   2. Test improvements with Option 1 (Generate Unit Tests)"
+            echo "   3. Verify coverage with Option 2 (Coverage Analysis)"
         else
-            echo "   (Check build directory for executables)"
+            echo ""
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "⚠️  Qwen execution completed with warnings or errors"
+            echo ""
+            echo "💡 You may want to:"
+            echo "   1. Check qwen output above for details"
+            echo "   2. Review any partial changes: git diff src/"
+            echo "   3. Try running Option 1 to test current state"
         fi
         ;;
         

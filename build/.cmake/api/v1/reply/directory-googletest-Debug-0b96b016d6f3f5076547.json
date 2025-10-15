@@ -1,0 +1,169 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install",
+			"install_project"
+		],
+		"files" : 
+		[
+			"googletest/CMakeLists.txt",
+			"googletest/cmake/internal_utils.cmake"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 98,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 105,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 159,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 301,
+				"parent" : 3
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 305,
+				"parent" : 3
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 329,
+				"parent" : 3
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 329,
+				"parent" : 3
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "gtest",
+			"destination" : "lib/cmake/GTest",
+			"exportName" : "GTestTargets",
+			"exportTargets" : 
+			[
+				{
+					"id" : "gtest::@b3026ea3adfb7c2366ee",
+					"index" : 2
+				},
+				{
+					"id" : "gtest_main::@b3026ea3adfb7c2366ee",
+					"index" : 3
+				},
+				{
+					"id" : "gmock::@3cc487480d69f582359a",
+					"index" : 0
+				},
+				{
+					"id" : "gmock_main::@3cc487480d69f582359a",
+					"index" : 1
+				}
+			],
+			"paths" : 
+			[
+				"googletest/CMakeFiles/Export/0c08b8e77dd885bfe55a19a9659d9fc1/GTestTargets.cmake"
+			],
+			"type" : "export"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "gtest",
+			"destination" : "lib/cmake/GTest",
+			"paths" : 
+			[
+				"/workspaces/CppMicroAgent/build/googletest/generated/GTestConfigVersion.cmake",
+				"/workspaces/CppMicroAgent/build/googletest/generated/GTestConfig.cmake"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 4,
+			"component" : "gtest",
+			"destination" : "include",
+			"paths" : 
+			[
+				{
+					"from" : "googletest/include",
+					"to" : "."
+				}
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 5,
+			"component" : "gtest",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"lib/libgtest.a"
+			],
+			"targetId" : "gtest::@b3026ea3adfb7c2366ee",
+			"targetIndex" : 2,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 5,
+			"component" : "gtest",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"lib/libgtest_main.a"
+			],
+			"targetId" : "gtest_main::@b3026ea3adfb7c2366ee",
+			"targetIndex" : 3,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 6,
+			"component" : "gtest",
+			"destination" : "lib/pkgconfig",
+			"paths" : 
+			[
+				"/workspaces/CppMicroAgent/build/googletest/generated/gtest.pc"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 7,
+			"component" : "gtest",
+			"destination" : "lib/pkgconfig",
+			"paths" : 
+			[
+				"/workspaces/CppMicroAgent/build/googletest/generated/gtest_main.pc"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "googletest",
+		"source" : "googletest"
+	}
+}

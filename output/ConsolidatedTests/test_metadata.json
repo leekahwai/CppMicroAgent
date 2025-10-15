@@ -1,35 +1,29 @@
 {
   "tests": [
     {
-      "test_name": "IntfB_Rx_init",
-      "class_name": "IntfB_Rx",
-      "method_name": "init",
-      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_Rx_init.cpp",
-      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfB_Rx_init",
-      "compiled": true
+      "test_name": "ProgramApp_ProgramApp",
+      "class_name": "ProgramApp",
+      "method_name": "ProgramApp",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/ProgramApp_ProgramApp.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/ProgramApp_ProgramApp",
+      "compiled": false,
+      "compile_error": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/ProgramApp_ProgramApp.cpp: In member function \u2018virtual void ProgramApp_Constructor_Test::TestBody()\u2019:\n/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/ProgramApp_ProgramApp.cpp:6:24: error: no matching function for call to \u2018ProgramApp::ProgramApp(int, int)\u2019\n    6 |     ProgramApp obj(0, 0);\n      |                        ^\nIn file included from /workspaces/CppMicroAgent/output/ConsolidatedTests/tests/ProgramApp_ProgramApp.cpp:2:\n/w"
     },
     {
-      "test_name": "IntfB_Rx_close",
-      "class_name": "IntfB_Rx",
-      "method_name": "close",
-      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_Rx_close.cpp",
-      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfB_Rx_close",
-      "compiled": true
+      "test_name": "ProgramApp_run",
+      "class_name": "ProgramApp",
+      "method_name": "run",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/ProgramApp_run.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/ProgramApp_run",
+      "compiled": false,
+      "compile_error": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/ProgramApp_run.cpp: In member function \u2018virtual void ProgramApp_run_Test::TestBody()\u2019:\n/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/ProgramApp_run.cpp:6:24: error: no matching function for call to \u2018ProgramApp::ProgramApp(int, int)\u2019\n    6 |     ProgramApp obj(0, 0);\n      |                        ^\nIn file included from /workspaces/CppMicroAgent/output/ConsolidatedTests/tests/ProgramApp_run.cpp:2:\n/workspaces/CppMicroAgent/TestP"
     },
     {
-      "test_name": "IntfB_Rx_addToQueue",
-      "class_name": "IntfB_Rx",
-      "method_name": "addToQueue",
-      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_Rx_addToQueue.cpp",
-      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfB_Rx_addToQueue",
-      "compiled": true
-    },
-    {
-      "test_name": "IntfB_Rx_getStats",
-      "class_name": "IntfB_Rx",
-      "method_name": "getStats",
-      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_Rx_getStats.cpp",
-      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfB_Rx_getStats",
+      "test_name": "Program_run",
+      "class_name": "Program",
+      "method_name": "run",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/Program_run.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/Program_run",
       "compiled": true
     },
     {
@@ -63,30 +57,6 @@
       "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfA_Rx_getStats.cpp",
       "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfA_Rx_getStats",
       "compiled": true
-    },
-    {
-      "test_name": "Program_run",
-      "class_name": "Program",
-      "method_name": "run",
-      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/Program_run.cpp",
-      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/Program_run",
-      "compiled": true
-    },
-    {
-      "test_name": "ProgramApp_ProgramApp",
-      "class_name": "ProgramApp",
-      "method_name": "ProgramApp",
-      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/ProgramApp_ProgramApp.cpp",
-      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/ProgramApp_ProgramApp",
-      "compiled": false
-    },
-    {
-      "test_name": "ProgramApp_run",
-      "class_name": "ProgramApp",
-      "method_name": "run",
-      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/ProgramApp_run.cpp",
-      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/ProgramApp_run",
-      "compiled": false
     },
     {
       "test_name": "InterfaceB_addToTx",
@@ -206,6 +176,38 @@
       "method_name": "getRxStats",
       "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/InterfaceA_getRxStats.cpp",
       "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/InterfaceA_getRxStats",
+      "compiled": true
+    },
+    {
+      "test_name": "IntfB_Rx_init",
+      "class_name": "IntfB_Rx",
+      "method_name": "init",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_Rx_init.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfB_Rx_init",
+      "compiled": true
+    },
+    {
+      "test_name": "IntfB_Rx_close",
+      "class_name": "IntfB_Rx",
+      "method_name": "close",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_Rx_close.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfB_Rx_close",
+      "compiled": true
+    },
+    {
+      "test_name": "IntfB_Rx_addToQueue",
+      "class_name": "IntfB_Rx",
+      "method_name": "addToQueue",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_Rx_addToQueue.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfB_Rx_addToQueue",
+      "compiled": true
+    },
+    {
+      "test_name": "IntfB_Rx_getStats",
+      "class_name": "IntfB_Rx",
+      "method_name": "getStats",
+      "test_file": "/workspaces/CppMicroAgent/output/ConsolidatedTests/tests/IntfB_Rx_getStats.cpp",
+      "binary": "/workspaces/CppMicroAgent/output/ConsolidatedTests/bin/IntfB_Rx_getStats",
       "compiled": true
     }
   ]
