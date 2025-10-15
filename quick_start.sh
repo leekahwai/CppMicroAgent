@@ -175,9 +175,8 @@ echo ""
 echo "  1. Generate Unit Tests (Quick, ~30 seconds)"
 echo "  2. Full Coverage Analysis (Requires Option 1 first, ~1-2 minutes)"
 echo "  3. AI Code Improvement (Qwen with YOLO mode - improves parser & generators)"
-echo "  4. View Existing Reports"
-echo "  5. Select Project"
-echo "  6. Exit"
+echo "  4. Select Project"
+echo "  5. Exit"
 echo ""
 read -p "Enter your choice (1-6): " choice
 
@@ -386,21 +385,7 @@ case $choice in
         echo ""
         
         # Define the improvement prompt
-        IMPROVEMENT_PROMPT="Analyze the Python files in src/ directory, specifically focusing on:
-
-1. improved_cpp_parser.py - Enhance the C++ parsing logic to:
-   - Better handle complex C++ constructs (templates, namespaces, nested classes)
-   - Improve function signature parsing and parameter extraction
-   - Add robust error handling for malformed C++ code
-   - Handle edge cases in header-only libraries
-
-2. Test generator files (*test_generator*.py) - Make them more robust by:
-   - Improving test case generation logic
-   - Adding better coverage for edge cases
-   - Enhancing error handling and validation
-   - Making generated tests more reliable
-
-Create or modify Python files to implement these improvements. Focus on making actual code changes, not just recommendations. Prioritize parser robustness and test generator reliability."
+        IMPROVEMENT_PROMPT="Analyze the Python files in src/ directory, specifically focusing on creating parser and unit test for the current project found in TestProjects. The current project name is found as project_path in CppMicroAgent.cfg: 1. improved_cpp_<project_name>_parser.py by adding project specific logic. 2. Test generator files (test_generator_<project_name>.py). Create or modify Python files iteratively without affecting previous logic and only enhancing for this specific project to implement these improvements to achieve at least 75% line coverage. Focus on making actual code changes in python, not just recommendations. Prioritize parser robustness and test generator reliability."
 
         # Run qwen with YOLO mode
         if qwen --approval-mode=yolo --all-files --prompt "$IMPROVEMENT_PROMPT"; then
@@ -426,47 +411,7 @@ Create or modify Python files to implement these improvements. Focus on making a
             echo "   3. Try running Option 1 to test current state"
         fi
         ;;
-        
     4)
-        echo ""
-        echo "Available Reports:"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        
-        if [ -d "output/ConsolidatedTests" ]; then
-            echo ""
-            echo "📊 Test Generation Results:"
-            if [ -f "output/ConsolidatedTests/test_metadata.json" ]; then
-                TEST_COUNT=$(grep -o '"test_name"' output/ConsolidatedTests/test_metadata.json | wc -l)
-                echo "   - $TEST_COUNT unit tests generated"
-                echo "   - Location: output/ConsolidatedTests/"
-            fi
-        fi
-        
-        if [ -d "output/UnitTestCoverage" ]; then
-            echo ""
-            echo "📈 Coverage Analysis Results:"
-            if [ -f "output/UnitTestCoverage/coverage_report.txt" ]; then
-                echo "   - Text Report: output/UnitTestCoverage/coverage_report.txt"
-                echo "   - HTML Report: output/UnitTestCoverage/lcov_html/index.html"
-                
-                # Show coverage summary if available
-                if grep -q "Overall coverage rate" output/UnitTestCoverage/coverage_report.txt; then
-                    echo ""
-                    grep "Overall coverage rate" output/UnitTestCoverage/coverage_report.txt | head -3
-                fi
-            fi
-        fi
-        
-        if [ ! -d "output/ConsolidatedTests" ] && [ ! -d "output/UnitTestCoverage" ]; then
-            echo ""
-            echo "No reports found yet. Run option 1 or 2 first."
-        fi
-        
-        echo ""
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        ;;
-        
-    5)
         echo ""
         echo "Select Project"
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -518,7 +463,7 @@ Create or modify Python files to implement these improvements. Focus on making a
         fi
         ;;
         
-    6)
+    5)
         echo "Goodbye! 👋"
         exit 0
         ;;
