@@ -690,14 +690,16 @@ The tool automatically selects the best generator for your project:
 **Enhanced TinyXML2 Generator**:
 - Specialized for TinyXML2 library
 - Achieves 78.3% function coverage (317/405)
-- 169 comprehensive tests
+- 46 comprehensive tests covering all major classes and methods
 - Handles XML parsing edge cases
+- Uses `run_tinyxml2_enhanced_tests.sh` script
 
 **Enhanced SampleApp Generator**:
 - Specialized for SampleApp multi-threading project
 - Improved threading handling with proper cleanup
 - Better struct usage for test data
 - Multiple operation scenarios for better coverage
+- 4 comprehensive test suites covering full workflows
 - Uses `run_sampleapp_enhanced_tests.sh` script
 
 **Ultimate Test Generator**:
