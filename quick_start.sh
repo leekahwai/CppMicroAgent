@@ -190,7 +190,7 @@ case $choice in
         rm -rf output/ConsolidatedTests/*
         sleep 2
 
-        # Check if current project is tinyxml2
+        # Check if current project is tinyxml2 or SampleApp
         CURRENT_PROJECT=$(get_project_path)
         USE_ENHANCED=0
         
@@ -225,8 +225,38 @@ case $choice in
                 echo "⚠️  Enhanced test script not found, falling back to standard generation"
                 echo ""
             fi
+        elif [[ "$CURRENT_PROJECT" == *"SampleApp"* ]]; then
+            echo "🎯 Detected SampleApp project - using enhanced test generators"
+            echo "   (Improves threading handling and coverage)"
+            echo ""
+            
+            # Use the enhanced SampleApp test generation script
+            if [ -f "run_sampleapp_enhanced_tests.sh" ]; then
+                if bash run_sampleapp_enhanced_tests.sh; then
+                    echo ""
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    echo "✅ Test Generation Complete!"
+                    echo ""
+                    echo "📊 Statistics:"
+                    echo "   - Enhanced tests generated with proper threading handling"
+                    echo "   - Includes InterfaceA, InterfaceB, and Program tests"
+                    echo ""
+                    echo "📁 Output location: output/ConsolidatedTests/"
+                    echo ""
+                    echo "💡 Run Option 2 to verify coverage with full analysis"
+                    USE_ENHANCED=1
+                else
+                    echo ""
+                    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    echo "❌ Enhanced Test Generation Failed!"
+                    exit 1
+                fi
+            else
+                echo "⚠️  Enhanced test script not found, falling back to standard generation"
+                echo ""
+            fi
         else
-            # For non-tinyxml2 projects, use ultimate generator for maximum coverage
+            # For other projects, use ultimate generator for maximum coverage
             echo "🎯 Using Ultimate Test Generator (Maximum Coverage)"
             echo "   (Targets 65% function coverage with all strategies)"
             echo ""
@@ -385,10 +415,10 @@ case $choice in
         echo ""
         
         # Define the improvement prompt
-        IMPROVEMENT_PROMPT="Analyze the Python files in src/ directory, specifically focusing on creating parser and unit test for the current project found in TestProjects. The current project name is found as project_path in CppMicroAgent.cfg: 1. improved_cpp_<project_name>_parser.py by adding project specific logic. 2. Test generator files (test_generator_<project_name>.py). Create or modify Python files iteratively without affecting previous logic and only enhancing for this specific project to implement these improvements to achieve at least 75% line coverage. Focus on making actual code changes in python, not just recommendations. Prioritize parser robustness and test generator reliability."
+        IMPROVEMENT_PROMPT="Analyze the Python files in @src/ directory, specifically focusing on creating parser and unit test for the current project found in TestProjects. The current project name is found as project_path in CppMicroAgent.cfg: 1. improved_cpp_<project_name>_parser.py by adding project specific logic. 2. Test generator files (test_generator_<project_name>.py). Create or modify Python files iteratively without affecting previous logic and only enhancing for this specific project to implement these improvements to achieve at least 75% line coverage. Focus on making actual code changes in python, not just recommendations. Prioritize parser robustness and test generator reliability."
 
         # Run qwen with YOLO mode
-        if qwen --approval-mode=yolo --all-files --prompt "$IMPROVEMENT_PROMPT"; then
+        if qwen -i '$IMPROVEMENT_PROMPT'; then
             echo ""
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             echo "✅ Qwen Code Improvement Complete!"

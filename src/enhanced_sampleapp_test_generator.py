@@ -222,6 +222,40 @@ TEST(Enhanced_InterfaceA, FullWorkflow) {
     obj.close();
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
+
+// Test: Multiple operations
+TEST(Enhanced_InterfaceA, MultipleOperations) {
+    InterfaceA obj;
+    
+    // Initialize
+    bool init_result = obj.init();
+    ASSERT_TRUE(init_result);
+    
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    
+    // Perform multiple operations
+    for (int i = 0; i < 5; i++) {
+        structA data;
+        data.a1 = i;
+        data.a2 = static_cast<float>(i) * 1.5f;
+        
+        obj.addToTx(data);
+        obj.addToRx(data);
+    }
+    
+    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+    
+    // Check stats
+    int txStats = obj.getTxStats();
+    int rxStats = obj.getRxStats();
+    
+    EXPECT_GE(txStats, 5);
+    EXPECT_GE(rxStats, 5);
+    
+    // Cleanup
+    obj.close();
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+}
 """)
     tests.append(str(test))
     print(f"  ✅ {test.name}")
@@ -235,25 +269,52 @@ def generate_program_workflow_tests(tests_dir):
     
     print("Generating Program workflow tests...")
     
-    # Test: Program execution
+    # Test: Program execution with proper cleanup
     test = tests_dir / "enhanced_Program_execution.cpp"
     with open(test, 'w') as f:
-        f.write("""// Enhanced Program Test - Execution
+        f.write("""// Enhanced Program Test - Execution with Threading Cleanup
 #include <gtest/gtest.h>
 #include <thread>
 #include <chrono>
 #include "Program.h"
 
+// Note: Program class doesn't have a close() method, so we rely on destructor
+// and sleep to allow threads to finish gracefully
 TEST(Enhanced_Program, Execution) {
-    Program prog;
+    {
+        Program prog;
+        
+        // Test run method
+        EXPECT_NO_THROW({
+            prog.run();
+        }) << "Program run() should not throw";
+        
+        // Allow execution to complete and threads to start
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
     
-    // Test run method
-    EXPECT_NO_THROW({
-        prog.run();
-    }) << "Program run() should not throw";
+    // Allow threads to finish gracefully after object destruction
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+}
+
+// Test: Multiple Program executions
+TEST(Enhanced_Program, MultipleExecutions) {
+    {
+        Program prog1;
+        Program prog2;
+        
+        // Test multiple run methods
+        EXPECT_NO_THROW({
+            prog1.run();
+            prog2.run();
+        }) << "Program run() should not throw";
+        
+        // Allow execution to complete and threads to start
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
     
-    // Allow execution to complete
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    // Allow threads to finish gracefully after object destruction
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 """)
     tests.append(str(test))
